@@ -1,11 +1,11 @@
 import os
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('Token.env')
 import discord
 from discord.ext import commands
 
 
-token = os.getenv("discord_token")
+TOKEN = os.getenv('DISCORD_TOKEN')
 extensions = ['cogs.ReloadCommands', 'cogs.Fun', 'cogs.CommandEvents', 'cogs.HelpCommands', 'cogs.ServerCommands', 'cogs.Uptime']
 
 bot = commands.Bot(command_prefix='$')
@@ -20,4 +20,4 @@ if __name__ == '__main__':
   for ext in extensions:
     bot.load_extension(ext)
 
-bot.run(token)
+bot.run(TOKEN)
