@@ -20,4 +20,4 @@ if __name__ == '__main__':
   for ext in extensions:
     bot.load_extension(ext)
 
-bot.run('NjExMzAzNzY4NzgwMzA4NDgx.XVR2_w.40jQKeb7V2Bg71daPl_g21z8-mo')
+bot.run(token)
