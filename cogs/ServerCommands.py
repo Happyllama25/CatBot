@@ -33,10 +33,10 @@ class ServerCommands(commands.Cog):
     @commands.command(name='start', aliases=['starty', 'bored', 'mc', 'join', 'ip'])
     async def start(self, ctx): 
         embed=discord.Embed(title='View the Map in Browser',
-        url='http://xxxxxxxxxxxxxxx:8100/',
+        url='http://73.49.109.86:8100/',
         color=0x5f0aee,
-        description='Server is always turned on!')
-        embed.set_footer(text='Join at: xxxxxxxxx:25567')
+        description='Server is **always turned on**!')
+        embed.set_footer(text='Join at: **73.49.109.86**')
         await ctx.send(embed=embed)
 
     # @commands.command()
@@ -74,7 +74,7 @@ class ServerCommands(commands.Cog):
     #             await channel.send('Starting 2 Jigglybit server')
     #             subprocess.Popen(r'D:\server-dont-delete-ffs\creative_server\start2.bat', cwd=r'D:\server-dont-delete-ffs\creative_server', shell=True)
     #             embed=discord.Embed(title='View Map in Browser',
-    #             url='http://xxxxxxxxxx:8100/',
+    #             url='http://73.49.109.86:8100/',
     #             color=0x5f0aee,
     #             description='Starting the server with 2 Jigglybits')
     #             embed.set_footer(text='Join on port 25567')
