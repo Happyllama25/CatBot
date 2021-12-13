@@ -6,7 +6,7 @@ from discord.ext import commands
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-extensions = ['cogs.ReloadCommands', 'cogs.Fun', 'cogs.CommandEvents', 'cogs.HelpCommands', 'cogs.ServerCommands', 'cogs.Uptime']
+extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.HelpCommands', 'cogs.ServerCommands', 'cogs.Uptime']
 
 bot = commands.Bot(command_prefix='$')
 bot.remove_command('help')
