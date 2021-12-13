@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-load_dotenv('Token.env')
+load_dotenv('token.env')
 import discord
 from discord.ext import commands
 
