@@ -10,32 +10,16 @@ class HelpCommands(commands.Cog):
     async def on_ready(self):
         print(f'{self} has been loaded')
 
-    @commands.group(name='help', invoke_without_command=True)
-    async def helpcommand(self, ctx):
-        await ctx.channel.send("Base help command. Accepted arguments: fun, server, music, admin")
+    @commands.command(name = "help", aliases=["commands"])
+    async def  help(self, ctx):
+        embedVar = discord.Embed(title="Help", description="List of commands:", color=0x5f0aee)
+        embedVar.add_field(name="$meow", value="Sends a picture of a cute cat", inline=False)
+        embedVar.add_field(name="$catfact", value="Sends a cool cat fact", inline=False)
+        embedVar.add_field(name="$ip",value="Tells you the IP to join the creative server", inline=False)
+        embedVar.add_field(name="$remind",value="Reminder command. seconds, minutes, hours and days are valid")
+        embedVar.add_field(name="-help",value="Sill send you a DM with the music commands", inline=False)
 
-    @helpcommand.command(name='fun')
-    async def fun_subcommand(self, ctx):
-        embedVar = discord.Embed(title="Fun Help", description="List of available fun commands!", color=0x5f0aee)
-        embedVar.add_field(name="$meow", value="Sends a picture of a cute cat.", inline=False)
-        embedVar.add_field(name="$catfact", value="Sends a cool cat fact.", inline=False)
         await ctx.send(embed=embedVar)
-
-
-    @helpcommand.command(name='server')
-    async def server_subcommand(self, ctx):
-        embedVar = discord.Embed(title="Server Help", description="List of available server commands!", color=0x5f0aee)
-        embedVar.add_field(name="$start",value="Starts the Minecraft Creative Server", inline=False)
-        embedVar.add_field(name="$start2",value="Starts the Minecraft Creative Server with 2Gb of RAM", inline=False)
-        embedVar.add_field(name="$startold",value="Starts the old Minecraft Creative Server", inline=False)
-        await ctx.send(embed=embedVar)
-
-    @helpcommand.command(name='music')
-    async def music_subcommand(self, ctx):
-        emb = discord.Embed(title="Fun Help", description="List of available fun commands!", color=0x5f0aee)
-        emb.add_field(name="join",value="Joins the voice-channel you are currently in.")
-        emb.add_field(name="",value="")
-        await ctx.send(embed=emb)
 
 def setup(bot):
     bot.add_cog(HelpCommands(bot))

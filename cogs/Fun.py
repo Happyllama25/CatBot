@@ -56,7 +56,7 @@ class Fun(commands.Cog):
             await ctx.send("Time must be an integer (numbers dum dum)")
             return
         
-        await ctx.send(f"Started reminder for **{task}** and will last **{time}**.")
+        await ctx.send(f"Started reminder for **{task}** and will remind in **{time}**.")
 
         await asyncio.sleep(converted_time)
         await ctx.send(f"{ctx.author.mention} your reminder for **{task}** has finished!")
