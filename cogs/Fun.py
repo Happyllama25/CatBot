@@ -19,13 +19,19 @@ class Fun(commands.Cog):
                 embed.set_footer(text="")
                 await ctx.send(embed=embed)
 
-    @commands.command(name='meow', help='Posts a random picture of a cat,')
+    @commands.command(name='meow', help='Posts a random picture of a cat')
     async def meow(self, ctx):
         async with aiohttp.ClientSession() as session:
             async with session.get("https://api.thecatapi.com/v1/images/search") as response:
                 picture = (await response.json())[0]["url"]
                 embed = discord.Embed(title=f'Random Cat Picture:', colour=0x400080)
                 embed.set_image(url = picture)
+                await ctx.send(embed=embed)
+
+    @commands.command(name='bricc', help='bricc')
+    async def bricc(self, ctx):
+                embed = discord.Embed(title=f'bricc', colour=0x400080)
+                embed.set_image(url = "https://c.tenor.com/UEYxx6a-VtgAAAAd/brick-eating.gif")
                 await ctx.send(embed=embed)
 
     @commands.command(name='remind', help='Reminds you of something with time')
