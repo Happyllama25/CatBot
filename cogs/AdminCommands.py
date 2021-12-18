@@ -26,5 +26,7 @@ class AdminCommands(commands.Cog):
         await ctx.channel.send(f"{member} is banned!")
 
 
+
+
 def setup(bot):
     bot.add_cog(AdminCommands(bot))
