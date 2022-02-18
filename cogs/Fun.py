@@ -35,7 +35,7 @@ class Fun(commands.Cog):
                 await ctx.send(embed=embed)
 
     @commands.command(name='remind', help='Reminds you of something with time')
-    async def remind(self, ctx, time, task):
+    async def remind(self, ctx, time, *, task):
         def convert(time):
             pos = ['s', 'm', 'h', 'd']
 

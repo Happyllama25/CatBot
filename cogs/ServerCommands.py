@@ -10,9 +10,9 @@ class ServerCommands(commands.Cog):
     async def on_ready(self):
         print(f'{self} has been loaded')
 
-    @commands.command(name='ping')
-    async def ping(self, ctx: commands.Context):
-        await ctx.send(f"Pong! {round(self.bot.latency * 1000) }ms")
+    # @commands.command(name='ping')
+    # async def ping(self, ctx):
+    #     await ctx.send(f"Pong! {round(self.bot.latency * 1000) }ms")
 
     @commands.command(aliases=['old'])
     async def startold(self, ctx): 
