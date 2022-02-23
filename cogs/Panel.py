@@ -29,7 +29,7 @@ class Panel(commands.Cog):
             "Accept": "application/json"
         }
 
-        data = requests.get(url, headers=headers).json()
+        data = requests.get(url, headers=headers)
         server_names = []
         server_identifiers = []
         time = round(data.elapsed.microseconds / 1000)
