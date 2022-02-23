@@ -104,20 +104,48 @@ class Feet(commands.Cog):
     @commands.command(name="fartpls")
     async def fartpls(self, ctx, *, channel: discord.VoiceChannel=None):
         # Gets voice channel of message author
-        voice_channel = ctx.author.channel
-        channel = None
-        if voice_channel != None:
-            channel = voice_channel.name
-            vc = await voice_channel.connect()
-            vc.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source="C:<path_to_file>"))
-            # Sleep while audio is playing.
-            while vc.is_playing():
-                time.sleep(.1)
-            await vc.disconnect()
-        else:
-            await ctx.send(str(ctx.author.name) + "is not in a channel.")
-        # Delete command after the audio is done playing.
-        await ctx.message.delete()
+        if not channel:
+                    try:
+                        channel = ctx.author.voice.channel
+                    except AttributeError:
+                        embed = discord.Embed(title="", description="no fard channel to join :(", color=discord.Color.green())
+                        await ctx.send(embed=embed)
+
+                    vc = ctx.voice_client
+
+                    if vc:
+                        if vc.channel.id == channel.id:
+                            return
+                        try:
+                            await vc.move_to(channel)
+                        except asyncio.TimeoutError:
+                            print(f'Moving to channel: <{channel}> timed out.')
+                            await ctx.send(f'fardin to <{channel}> timed out.')
+                    else:
+                        try:
+                            await channel.connect()
+                        except asyncio.TimeoutError:
+                            print(f'Connecting to channel: <{channel}> timed out.')
+                            await ctx.send(f'fardin to <{channel}> timed out.')
+                    await ctx.send(f'**farding in `{channel}`...**')
+
+
+
+                    voice_channel = channel
+                    channel = None
+                    if voice_channel != None:
+                        channel = voice_channel.name
+                        vc = await voice_channel.connect()
+                        vc.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source="C:<path_to_file>"))
+                        # Sleep while audio is playing.
+                        while vc.is_playing():
+                            time.sleep(.1)
+                        await vc.disconnect()
+                    else:
+                        await ctx.send(str(ctx.author.name) + "is not in a channel.")
+                    # Delete command after the audio is done playing.
+                    await ctx.message.delete()
+
 
 
     @commands.command(name='ping')

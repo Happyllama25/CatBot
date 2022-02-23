@@ -29,14 +29,16 @@ class ServerCommands(commands.Cog):
         description='Server Starting...')
         embed.set_footer(text='Join with default ip (no port)')
         await ctx.send(embed=embed)
-
-    @commands.command(name='start', aliases=['starty', 'bored', 'mc', 'join', 'ip'])
+    @commands.command(name='ip')
+    async def ip(self, ctx):
+        await ctx.send("IP's for games and things is: `73.49.109.86`")
+    @commands.command(name='start', aliases=['starty', 'bored', 'mc', 'join'])
     async def start(self, ctx): 
         embed=discord.Embed(title='View the Map in Browser',
-        url='http://73.49.109.86:8100/',
+        url='http://game.happyllama25.net:8100/',
         color=0x5f0aee,
-        description='Server is **always turned on**!')
-        embed.set_footer(text='Join at: **73.49.109.86**')
+        description='Server is *usually* **always turned on**!')
+        embed.set_footer(text='Join at: **game.happyllama25.net**')
         await ctx.send(embed=embed)
 
     # @commands.command()

@@ -6,7 +6,7 @@ from discord.ext import commands
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet']
+extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel']
 
 # , 'cogs.HelpCommands', 'cogs.ServerCommands'
 

@@ -1,3 +1,4 @@
+from time import sleep
 import aiohttp, discord, asyncio
 from discord.ext import commands
 
@@ -10,29 +11,45 @@ class Fun(commands.Cog):
         print(f'{self} has been loaded')
 
     @commands.command(name='catfact', help='Sends a random CatFact.')
-    async def catfact(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://catfact.ninja/fact") as response:
-                fact = (await response.json())["fact"]
-                length = (await response.json())["length"]
-                embed = discord.Embed(title=f'Random Cat Fact Number: **{length}**', description=f'Cat Fact: {fact}', colour=0x400080)
-                embed.set_footer(text="")
-                await ctx.send(embed=embed)
+    async def catfact(self, ctx, n = 1):
+        for i in range(n):
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://catfact.ninja/fact") as response:
+                    fact = (await response.json())["fact"]
+                    length = (await response.json())["length"]
+                    embed = discord.Embed(title=f'Random Cat Fact Number: **{length}**', description=f'Cat Fact: {fact}', colour=0x400080)
+                    embed.set_footer(text="")
+                    await ctx.send(embed=embed)
+                    await asyncio.sleep(1)
+            if n >= 6 or n <= 0:
+                await ctx.send("Loop amount can't be greater than 5 or less than 0")
+                break
 
     @commands.command(name='meow', help='Posts a random picture of a cat')
-    async def meow(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://api.thecatapi.com/v1/images/search") as response:
-                picture = (await response.json())[0]["url"]
-                embed = discord.Embed(title=f'Random Cat Picture:', colour=0x400080)
-                embed.set_image(url = picture)
-                await ctx.send(embed=embed)
+    async def meow(self, ctx, n = 1):
+        for i in range(n):
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://api.thecatapi.com/v1/images/search") as response:
+                    picture = (await response.json())[0]["url"]
+                    embed = discord.Embed(title=f'Random Cat Picture:', colour=0x400080)
+                    embed.set_image(url = picture)
+                    await ctx.send(embed=embed)
+                    await asyncio.sleep(1)
+            if n >= 6 or n <= 0:
+                await ctx.send("Loop amount can't be greater than 5 or less than 0")
+                break
+                
 
     @commands.command(name='bricc', help='bricc')
-    async def bricc(self, ctx):
-                embed = discord.Embed(title=f'bricc', colour=0x400080)
-                embed.set_image(url = "https://c.tenor.com/UEYxx6a-VtgAAAAd/brick-eating.gif")
-                await ctx.send(embed=embed)
+    async def bricc(self, ctx, n = 1):
+        for i in range(n):
+            embed = discord.Embed(title=f'bricc', colour=0x400080)
+            embed.set_image(url = "https://c.tenor.com/UEYxx6a-VtgAAAAd/brick-eating.gif")
+            await ctx.send(embed=embed)
+            await asyncio.sleep(1)
+            if n >= 6 or n <= 0:
+                await ctx.send("Loop amount can't be greater than 5 or less than 0")
+                break
 
     @commands.command(name='remind', help='Reminds you of something with time')
     async def remind(self, ctx, time, *, task):
