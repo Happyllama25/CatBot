@@ -1,8 +1,8 @@
-import os
+import os, discord
 from dotenv import load_dotenv
 load_dotenv('config.env')
-import discord
 from discord.ext import commands
+
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -10,7 +10,7 @@ extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cog
 
 # , 'cogs.HelpCommands', 'cogs.ServerCommands'
 
-bot = commands.Bot(command_prefix='$')
+bot = commands.Bot(command_prefix='$', intents=discord.Intents.all())
 bot.remove_command('help')
 
 @bot.event

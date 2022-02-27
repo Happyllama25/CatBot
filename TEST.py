@@ -1,3 +1,4 @@
+import asyncio
 from async_timeout import timeout
 import requests, os
 from dotenv import load_dotenv
@@ -37,24 +38,25 @@ headers = {
 
 
 
+try: 
+  dataresources = requests.get(url, headers=headers, timeout=0.001)
+except requests.exceptions.ConnectTimeout:
+  print('timed out')
 
 
 
+# id = '019e4728'
+
+# url = f'https://panel.happyllama25.net/api/client/servers/{id}'
+# data = requests.request('GET', url, headers=headers).json()
 
 
+# server_status = []
 
-id = '019e4728'
+# for server in data['attributes']['relationships']['allocations']['data']:
 
-url = f'https://panel.happyllama25.net/api/client/servers/{id}'
-data = requests.request('GET', url, headers=headers).json()
+#     server_status = server['attributes']['ip_alias']
 
-
-server_status = []
-
-for server in data['attributes']['relationships']['allocations']['data']:
-
-    server_status = server['attributes']['ip_alias']
-
-# print(dataname)
-print(server_status)
+# # print(dataname)
+# print(data.status_code)
 

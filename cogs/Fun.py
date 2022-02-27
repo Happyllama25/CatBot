@@ -10,6 +10,11 @@ class Fun(commands.Cog):
     async def on_ready(self):
         print(f'{self} has been loaded')
 
+    @commands.command(name = "say")
+    async def  say(self, ctx, *, message = 'CatBot is the best'):
+        await ctx.message.delete()
+        await ctx.send(message)
+
     @commands.command(name='catfact', help='Sends a random CatFact.')
     async def catfact(self, ctx, n = 1):
         for i in range(n):

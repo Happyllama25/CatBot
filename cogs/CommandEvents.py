@@ -1,5 +1,6 @@
 from discord import errors
 from discord.ext import commands
+import time
 
 class CommandEvents(commands.Cog):
     def __init__(self, bot):
@@ -17,6 +18,14 @@ class CommandEvents(commands.Cog):
     @commands.Cog.listener()
     async def on_command_completion(self, ctx):
         print(ctx.command.name + " success")
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            message = await ctx.send(f'This command is on cooldown, you can use it in {round(error.retry_after)} seconds.')
+            time.sleep(3)
+            await message.delete()
+
 
 def setup(bot):
     bot.add_cog(CommandEvents(bot))
