@@ -3,4 +3,4 @@ This is my first coding project I wrote, it was created so that my friends and o
 
 My goal was to ultimately get more people into joining the server and interacting with eachother and to also cut out the need to manually start servers from the host machine.
 
-I wrote it in Python 3.9 and disnake.py
+I started writing it in Python 3.9 and discord.py 1.7.3 but then migrated to Disnake 2.4.0
