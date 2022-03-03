@@ -1,10 +1,10 @@
 import asyncio
 from cgi import test
-import discord
+import disnake
 import requests, os
 from dotenv import load_dotenv
 load_dotenv('config.env')
-from discord.ext import commands
+from disnake.ext import commands
 
 API_KEY = os.getenv('API_KEY')
 
@@ -42,7 +42,7 @@ class Panel(commands.Cog):
 
             server_identifiers.append(server['attributes'] ['identifier'])
 
-        embed=discord.Embed(title="Available Servers", color=0x1835e7)
+        embed=disnake.Embed(title="Available Servers", color=0x1835e7)
         embed.add_field(name="Name", value='\n'.join(server_names), inline=True)
         embed.add_field(name="Identifier", value='\n'.join(server_identifiers), inline=True)
         embed.set_footer(text=str(ctx.author) + f" ⚫ response time: " + str(time) + 'ms')
@@ -77,6 +77,7 @@ class Panel(commands.Cog):
 
             cpu_usage = round(cpu_raw, 2)
 
+
             memory = round(memory_unmathed / 1000000000, 2)
 
             await message.edit(content="Querying panel...")
@@ -107,7 +108,7 @@ class Panel(commands.Cog):
 
 
             if server_status == "running":
-                embed=discord.Embed(title="Server Status", color=0x22dbdd)
+                embed=disnake.Embed(title="Server Status", color=0x22dbdd)
                 embed.add_field(name="Name", value=name, inline=True)
                 embed.add_field(name="Status", value=server_status.capitalize(), inline=True)
                 embed.add_field(name="Icon", value="🟢", inline=True) # Emoji line
@@ -189,7 +190,7 @@ class Panel(commands.Cog):
 
 
             elif server_status == "offline":
-                embed=discord.Embed(title="Server Status", color=0xdd2422)
+                embed=disnake.Embed(title="Server Status", color=0xdd2422)
                 embed.add_field(name="Name", value=name, inline=True)
                 embed.add_field(name="Status", value=server_status.capitalize(), inline=True)
                 embed.add_field(name="Icon", value="🔴", inline=True) # Emoji line
@@ -267,7 +268,7 @@ class Panel(commands.Cog):
 
             elif server_status == "starting":
                 await ctx.send('starting')
-                embed=discord.Embed(title="Server Status", color=0xe7ca18)
+                embed=disnake.Embed(title="Server Status", color=0xe7ca18)
                 embed.add_field(name="Name", value=name, inline=True)
                 embed.add_field(name="Status", value=server_status.capitalize(), inline=True)
                 embed.add_field(name="Icon", value="🟡", inline=True) # Emoji line
@@ -350,7 +351,7 @@ class Panel(commands.Cog):
                 await ctx.send('HTTPS Status Code: ' + statuscode)
                 await ctx.send('Response time for resource request:' + str(timeresource))
                 await ctx.send('Response time for name request:' + str(timename))
-                embed=discord.Embed(title="Response from the API", color=0xaa33cc)
+                embed=disnake.Embed(title="Response from the API", color=0xaa33cc)
                 embed.set_author(name=statuscode)
                 embed.add_field(name="Name", value=name, inline=True)
                 embed.add_field(name="Status", value=server_status.capitalize(), inline=True)

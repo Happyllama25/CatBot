@@ -1,5 +1,5 @@
-from discord import errors
-from discord.ext import commands
+from disnake import errors
+from disnake.ext import commands
 import time
 
 class CommandEvents(commands.Cog):

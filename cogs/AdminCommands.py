@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 
 class AdminCommands(commands.Cog):
@@ -14,7 +14,7 @@ class AdminCommands(commands.Cog):
     #bans a user with a reason
     @commands.command()
     @commands.has_any_role("THE E L E V A T E D ONES")
-    async def ban (ctx, member:discord.User=None, reason =None):
+    async def ban (ctx, member:disnake.User=None, reason =None):
         if member == None or member == ctx.message.author:
             await ctx.channel.send("You cannot ban yourself")
             return

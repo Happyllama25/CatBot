@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+from disnake.ext import commands
+import disnake
 import asyncio
 import youtube_dl
 import logging
@@ -11,7 +11,7 @@ from ..video import Videopipo
 FFMPEG_BEFORE_OPTS = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
 """
 Command line options to pass to `ffmpeg` before the `-i`.
-See https://stackoverflow.com/questions/43218292/youtubedl-read-error-with-discord-py/44490434#44490434 for more information.
+See https://stackoverflow.com/questions/43218292/youtubedl-read-error-with-disnake-py/44490434#44490434 for more information.
 Also, https://ffmpeg.org/ffmpeg-protocols.html for command line option reference.
 """
 
@@ -165,8 +165,8 @@ class Music(commands.Cog):
     def _play_song(self, client, state, song):
         state.now_playing = song
         state.skip_votes = set()  # clear skip votes
-        source = discord.PCMVolumeTransformer(
-            discord.FFmpegPCMAudio(song.stream_url, before_options=FFMPEG_BEFORE_OPTS), volume=state.volume)
+        source = disnake.PCMVolumeTransformer(
+            disnake.FFmpegPCMAudio(song.stream_url, before_options=FFMPEG_BEFORE_OPTS), volume=state.volume)
 
         def after_playing(err):
             if len(state.playlist) > 0:

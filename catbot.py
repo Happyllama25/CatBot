@@ -1,35 +1,37 @@
-import os, discord
+import os
 from dotenv import load_dotenv
 load_dotenv('config.env')
-from discord.ext import commands
-
+import disnake
+from disnake.ext import commands
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel']
 
 # , 'cogs.HelpCommands', 'cogs.ServerCommands'
-
-bot = commands.Bot(command_prefix='$', intents=discord.Intents.all())
+bot = commands.Bot(command_prefix='$', intents=disnake.Intents.all())
 bot.remove_command('help')
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='fabian fucking die'))
+    await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='fabian fucking die'))
     print('Ready!')
 
-# @bot.event
-# async def on_message(message):
-#     if 'good catbot' in message.content:
-#         print('Keyword found in message')
-#         embed = discord.Embed(title=f'😺', colour=0x400080)
-#         embed.set_image(url = 'https://tenor.com/view/kitty-review-kittyreview-cat-squishy-gif-21044823')
-#         await message.send(embed=embed)
+
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+    if 'good catbot' in message.content:
+        print('Keyword found in message')
+        embed = disnake.Embed(title=f'😺', colour=0x400080)
+        embed.set_image(url = 'https://c.tenor.com/ECAwQcWmgO4AAAAd/kitty-review.gif')
+        await message.channel.send(embed=embed)
 
 
 
-if __name__ == '__main__':
-  for ext in extensions:
-    bot.load_extension(ext)
+for ext in extensions:
+  bot.load_extension(ext)
 
 bot.run(TOKEN)

@@ -1,6 +1,5 @@
-from time import sleep
-import aiohttp, discord, asyncio
-from discord.ext import commands
+import aiohttp, disnake, asyncio
+from disnake.ext import commands
 
 class Fun(commands.Cog):
     def __init__(self, bot):
@@ -22,7 +21,7 @@ class Fun(commands.Cog):
                 async with session.get("https://catfact.ninja/fact") as response:
                     fact = (await response.json())["fact"]
                     length = (await response.json())["length"]
-                    embed = discord.Embed(title=f'Random Cat Fact Number: **{length}**', description=f'Cat Fact: {fact}', colour=0x400080)
+                    embed = disnake.Embed(title=f'Random Cat Fact Number: **{length}**', description=f'Cat Fact: {fact}', colour=0x400080)
                     embed.set_footer(text="")
                     await ctx.send(embed=embed)
                     await asyncio.sleep(1)
@@ -36,7 +35,7 @@ class Fun(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.get("https://api.thecatapi.com/v1/images/search") as response:
                     picture = (await response.json())[0]["url"]
-                    embed = discord.Embed(title=f'Random Cat Picture:', colour=0x400080)
+                    embed = disnake.Embed(title=f'Random Cat Picture:', colour=0x400080)
                     embed.set_image(url = picture)
                     await ctx.send(embed=embed)
                     await asyncio.sleep(1)
@@ -48,7 +47,7 @@ class Fun(commands.Cog):
     @commands.command(name='bricc', help='bricc')
     async def bricc(self, ctx, n = 1):
         for i in range(n):
-            embed = discord.Embed(title=f'bricc', colour=0x400080)
+            embed = disnake.Embed(title=f'bricc', colour=0x400080)
             embed.set_image(url = "https://c.tenor.com/UEYxx6a-VtgAAAAd/brick-eating.gif")
             await ctx.send(embed=embed)
             await asyncio.sleep(1)

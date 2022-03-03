@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 import random
 import asyncio
 import itertools
@@ -43,7 +43,7 @@ class InvalidVoiceChannel(VoiceConnectionError):
     """Exception for cases of invalid Voice Channels."""
 
 
-class YTDLSource(discord.PCMVolumeTransformer):
+class YTDLSource(disnake.PCMVolumeTransformer):
 
     def __init__(self, source, *, data, requester):
         super().__init__(source)
@@ -73,7 +73,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             # take first item from a playlist
             data = data['entries'][0]
 
-        embed = discord.Embed(title="", description=f"Queued [{data['title']}]({data['webpage_url']}) [{ctx.author.mention}]", color=discord.Color.green())
+        embed = disnake.Embed(title="", description=f"Queued [{data['title']}]({data['webpage_url']}) [{ctx.author.mention}]", color=disnake.Color.green())
         await ctx.send(embed=embed)
 
         if download:
@@ -81,7 +81,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         else:
             return {'webpage_url': data['webpage_url'], 'requester': ctx.author, 'title': data['title']}
 
-        return cls(discord.FFmpegPCMAudio(source), data=data, requester=ctx.author)
+        return cls(disnake.FFmpegPCMAudio(source), data=data, requester=ctx.author)
 
     @classmethod
     async def regather_stream(cls, data, *, loop):
@@ -93,7 +93,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         to_run = partial(ytdl.extract_info, url=data['webpage_url'], download=False)
         data = await loop.run_in_executor(None, to_run)
 
-        return cls(discord.FFmpegPCMAudio(data['url']), data=data, requester=requester)
+        return cls(disnake.FFmpegPCMAudio(data['url']), data=data, requester=requester)
 
 
 class MusicPlayer:
@@ -148,7 +148,7 @@ class MusicPlayer:
             self.current = source
 
             self._guild.voice_client.play(source, after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set))
-            embed = discord.Embed(title="Now playing", description=f"[{source.title}]({source.web_url}) [{source.requester.mention}]", color=discord.Color.green())
+            embed = disnake.Embed(title="Now playing", description=f"[{source.title}]({source.web_url}) [{source.requester.mention}]", color=disnake.Color.green())
             self.np = await self._channel.send(embed=embed)
             await self.next.wait()
 
@@ -196,7 +196,7 @@ class Music(commands.Cog):
         if isinstance(error, commands.NoPrivateMessage):
             try:
                 return await ctx.send('This command can not be used in Private Messages.')
-            except discord.HTTPException:
+            except disnake.HTTPException:
                 pass
         elif isinstance(error, InvalidVoiceChannel):
             await ctx.send('Error connecting to Voice Channel. '
@@ -216,11 +216,11 @@ class Music(commands.Cog):
         return player
 
     @commands.command(name='join', aliases=['connect', 'j', 'summon'], description="connects to voice")
-    async def connect_(self, ctx, *, channel: discord.VoiceChannel=None):
+    async def connect_(self, ctx, *, channel: disnake.VoiceChannel=None):
         """Connect to voice.
         Parameters
         ------------
-        channel: discord.VoiceChannel [Optional]
+        channel: disnake.VoiceChannel [Optional]
             The channel to connect to. If a channel is not specified, an attempt to join the voice channel you are in
             will be made.
         This command also handles moving the bot to different channels.
@@ -229,7 +229,7 @@ class Music(commands.Cog):
             try:
                 channel = ctx.author.voice.channel
             except AttributeError:
-                embed = discord.Embed(title="", description="No channel to join. Please run this command again from a voice channel.", color=discord.Color.green())
+                embed = disnake.Embed(title="", description="No channel to join. Please run this command again from a voice channel.", color=disnake.Color.green())
                 await ctx.send(embed=embed)
                 raise InvalidVoiceChannel('No channel to join. Please either specify a valid channel or join one.')
 
@@ -271,7 +271,7 @@ class Music(commands.Cog):
         player = self.get_player(ctx)
 
         # If download is False, source will be a dict which will be used later to regather the stream.
-        # If download is True, source will be a discord.FFmpegPCMAudio with a VolumeTransformer.
+        # If download is True, source will be a disnake.FFmpegPCMAudio with a VolumeTransformer.
         source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop, download=False)
 
         await player.queue.put(source)
@@ -282,7 +282,7 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_playing():
-            embed = discord.Embed(title="", description="I am currently not playing anything", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I am currently not playing anything", color=disnake.Color.green())
             return await ctx.send(embed=embed)
         elif vc.is_paused():
             return
@@ -296,7 +296,7 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            embed = discord.Embed(title="", description="I'm not connected to a voice channel", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I'm not connected to a voice channel", color=disnake.Color.green())
             return await ctx.send(embed=embed)
         elif not vc.is_paused():
             return
@@ -310,7 +310,7 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            embed = discord.Embed(title="", description="I'm not connected to a voice channel", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I'm not connected to a voice channel", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         if vc.is_paused():
@@ -327,7 +327,7 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            embed = discord.Embed(title="", description="I'm not connected to a voice channel", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I'm not connected to a voice channel", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         player = self.get_player(ctx)
@@ -337,10 +337,10 @@ class Music(commands.Cog):
             try:
                 s = player.queue._queue[pos-1]
                 del player.queue._queue[pos-1]
-                embed = discord.Embed(title="", description=f"Removed [{s['title']}]({s['webpage_url']}) [{s['requester'].mention}]", color=discord.Color.green())
+                embed = disnake.Embed(title="", description=f"Removed [{s['title']}]({s['webpage_url']}) [{s['requester'].mention}]", color=disnake.Color.green())
                 await ctx.send(embed=embed)
             except:
-                embed = discord.Embed(title="", description=f'Could not find a track for "{pos}"', color=discord.Color.green())
+                embed = disnake.Embed(title="", description=f'Could not find a track for "{pos}"', color=disnake.Color.green())
                 await ctx.send(embed=embed)
     
     @commands.command(name='clear', aliases=['clr', 'cl', 'cr'], description="clears entire queue")
@@ -350,7 +350,7 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            embed = discord.Embed(title="", description="I'm not connected to a voice channel", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I'm not connected to a voice channel", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         player = self.get_player(ctx)
@@ -363,12 +363,12 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            embed = discord.Embed(title="", description="CatBot DJ is not connected to a voice channel", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="CatBot DJ is not connected to a voice channel", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         player = self.get_player(ctx)
         if player.queue.empty():
-            embed = discord.Embed(title="", description="The queue is empty", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="The queue is empty", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         seconds = vc.source.duration % (24 * 3600) 
@@ -385,7 +385,7 @@ class Music(commands.Cog):
         upcoming = list(itertools.islice(player.queue._queue, 0, int(len(player.queue._queue))))
         fmt = '\n'.join(f"`{(upcoming.index(_)) + 1}.` [{_['title']}]({_['webpage_url']}) | ` {duration} Requested by: {_['requester']}`\n" for _ in upcoming)
         fmt = f"\n__Now Playing__:\n[{vc.source.title}]({vc.source.web_url}) | ` {duration} Requested by: {vc.source.requester}`\n\n__Up Next:__\n" + fmt + f"\n**{len(upcoming)} songs in queue**"
-        embed = discord.Embed(title=f'Queue for {ctx.guild.name}', description=fmt, color=discord.Color.green())
+        embed = disnake.Embed(title=f'Queue for {ctx.guild.name}', description=fmt, color=disnake.Color.green())
         embed.set_footer(text=f"{ctx.author.display_name}", icon_url=ctx.author.avatar_url)
 
         await ctx.send(embed=embed)
@@ -396,12 +396,12 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            embed = discord.Embed(title="", description="I'm not connected to a voice channel", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I'm not connected to a voice channel", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         player = self.get_player(ctx)
         if not player.current:
-            embed = discord.Embed(title="", description="I am currently not playing anything", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I am currently not playing anything", color=disnake.Color.green())
             return await ctx.send(embed=embed)
         
         seconds = vc.source.duration % (24 * 3600) 
@@ -414,7 +414,7 @@ class Music(commands.Cog):
         else:
             duration = "%02dm %02ds" % (minutes, seconds)
 
-        embed = discord.Embed(title="", description=f"[{vc.source.title}]({vc.source.web_url}) [{vc.source.requester.mention}] | `{duration}`", color=discord.Color.green())
+        embed = disnake.Embed(title="", description=f"[{vc.source.title}]({vc.source.web_url}) [{vc.source.requester.mention}] | `{duration}`", color=disnake.Color.green())
         embed.set_author(icon_url=self.bot.user.avatar_url, name=f"Now Playing 🎶")
         await ctx.send(embed=embed)
 
@@ -429,15 +429,15 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            embed = discord.Embed(title="", description="I am not currently connected to voice", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I am not currently connected to voice", color=disnake.Color.green())
             return await ctx.send(embed=embed)
         
         if not vol:
-            embed = discord.Embed(title="", description=f"🔊 **{(vc.source.volume)*100}%**", color=discord.Color.green())
+            embed = disnake.Embed(title="", description=f"🔊 **{(vc.source.volume)*100}%**", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         if not 0 < vol < 101:
-            embed = discord.Embed(title="", description="Please enter a value between 1 and 100", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="Please enter a value between 1 and 100", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         player = self.get_player(ctx)
@@ -446,7 +446,7 @@ class Music(commands.Cog):
             vc.source.volume = vol / 100
 
         player.volume = vol / 100
-        embed = discord.Embed(title="", description=f'**`{ctx.author}`** set the volume to **{vol}%**', color=discord.Color.green())
+        embed = disnake.Embed(title="", description=f'**`{ctx.author}`** set the volume to **{vol}%**', color=disnake.Color.green())
         await ctx.send(embed=embed)
 
     @commands.command(name='leave', aliases=["stop", "dc", "disconnect", "bye"], description="stops music and disconnects from voice")
@@ -458,7 +458,7 @@ class Music(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            embed = discord.Embed(title="", description="I'm not connected to a voice channel", color=discord.Color.green())
+            embed = disnake.Embed(title="", description="I'm not connected to a voice channel", color=disnake.Color.green())
             return await ctx.send(embed=embed)
 
         if (random.randint(0, 1) == 0):

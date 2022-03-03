@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+from disnake.ext import commands
+import disnake
 
 
 class HelpCommands(commands.Cog):
@@ -12,7 +12,7 @@ class HelpCommands(commands.Cog):
 
     @commands.command(name = "help", aliases=["commands"])
     async def  help(self, ctx):
-        embedVar = discord.Embed(title="Help", description="List of commands:", color=0x5f0aee)
+        embedVar = disnake.Embed(title="Help", description="List of commands:", color=0x5f0aee)
         embedVar.add_field(name="$meow", value="Sends a picture of a cute cat", inline=False)
         embedVar.add_field(name="$catfact", value="Sends a cool cat fact", inline=False)
         embedVar.add_field(name="$ip",value="Tells you the IP to join the creative server", inline=False)

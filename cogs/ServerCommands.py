@@ -1,5 +1,5 @@
-from discord.ext import commands
-import subprocess, discord, asyncio
+from disnake.ext import commands
+import subprocess, disnake, asyncio
 from time import sleep
 
 class ServerCommands(commands.Cog):
@@ -17,7 +17,7 @@ class ServerCommands(commands.Cog):
     @commands.command(aliases=['old'])
     async def startold(self, ctx): 
         subprocess.Popen(r'D:\server-dont-delete-ffs\building_server\start.bat', cwd=r'D:\server-dont-delete-ffs\building_server', shell=True)
-        embed=discord.Embed(color=0x5f0aee,
+        embed=disnake.Embed(color=0x5f0aee,
         description='Server Starting...')
         embed.set_footer(text='Join on port 25566')
         await ctx.send(embed=embed)
@@ -25,7 +25,7 @@ class ServerCommands(commands.Cog):
     @commands.command(aliases=['hardcore', 'hard'])
     async def starthard(self, ctx): 
         subprocess.Popen(r'C:\Users\fabse\Desktop\Creations\Python\Servers\hardcore\start.bat', cwd=r'C:\Users\fabse\Desktop\Creations\Python\Servers\hardcore', shell=True)
-        embed=discord.Embed(color=0x5f0aee,
+        embed=disnake.Embed(color=0x5f0aee,
         description='Server Starting...')
         embed.set_footer(text='Join with default ip (no port)')
         await ctx.send(embed=embed)
@@ -34,7 +34,7 @@ class ServerCommands(commands.Cog):
         await ctx.send("IP's for games and things is: `73.49.109.86`")
     @commands.command(name='start', aliases=['starty', 'bored', 'mc', 'join'])
     async def start(self, ctx): 
-        embed=discord.Embed(title='View the Map in Browser',
+        embed=disnake.Embed(title='View the Map in Browser',
         url='http://game.happyllama25.net:8100/',
         color=0x5f0aee,
         description='Server is *usually* **always turned on**!')
@@ -44,14 +44,14 @@ class ServerCommands(commands.Cog):
     # @commands.command()
     # async def startsibbi(self, ctx): 
     #     subprocess.Popen(r'C:\Users\fabse\Desktop\Creations\Servers\sibbi-survival\start.bat', cwd=r'C:\Users\fabse\Desktop\Creations\Servers\sibbi-survival', shell=True)
-    #     embed=discord.Embed(color=0x5f0aee,
+    #     embed=disnake.Embed(color=0x5f0aee,
     #     description='Server Starting...')
     #     await ctx.send(embed=embed)
 
     @commands.command(aliases=['modded', 'mods'])
     async def startmodded(self, ctx): 
         subprocess.Popen(r'C:\Users\fabse\Desktop\Creations\Python\Servers\ldoh_0.3.1_serverpack\start.bat', cwd=r'C:\Users\fabse\Desktop\Creations\Python\Servers\ldoh_0.3.1_serverpack', shell=True)
-        embed=discord.Embed(color=0x5f0aee,
+        embed=disnake.Embed(color=0x5f0aee,
         description='Server Starting (it might take a while)...')
         await ctx.send(embed=embed)
     
@@ -75,7 +75,7 @@ class ServerCommands(commands.Cog):
     #         else:
     #             await channel.send('Starting 2 Jigglybit server')
     #             subprocess.Popen(r'D:\server-dont-delete-ffs\creative_server\start2.bat', cwd=r'D:\server-dont-delete-ffs\creative_server', shell=True)
-    #             embed=discord.Embed(title='View Map in Browser',
+    #             embed=disnake.Embed(title='View Map in Browser',
     #             url='http://73.49.109.86:8100/',
     #             color=0x5f0aee,
     #             description='Starting the server with 2 Jigglybits')

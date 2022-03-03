@@ -1,23 +1,23 @@
 # This example requires the 'members' privileged intents
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 class ReactionRole(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    class MyClient(discord.Client):
+    class MyClient(disnake.Client):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
             self.role_message_id = 0 # ID of the message that can be reacted to to add/remove a role.
             self.emoji_to_role = {
-                discord.PartialEmoji(name='🔴'): 0, # ID of the role associated with unicode emoji '🔴'.
-                discord.PartialEmoji(name='🟡'): 0, # ID of the role associated with unicode emoji '🟡'.
-                discord.PartialEmoji(name='green', id=0): 0, # ID of the role associated with a partial emoji's ID.
+                disnake.PartialEmoji(name='🔴'): 0, # ID of the role associated with unicode emoji '🔴'.
+                disnake.PartialEmoji(name='🟡'): 0, # ID of the role associated with unicode emoji '🟡'.
+                disnake.PartialEmoji(name='green', id=0): 0, # ID of the role associated with a partial emoji's ID.
             }
 
-        async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        async def on_raw_reaction_add(self, payload: disnake.RawReactionActionEvent):
             """Gives a role based on a reaction emoji."""
             # Make sure that the message the user is reacting to is the one we care about.
             if payload.message_id != self.role_message_id:
@@ -42,11 +42,11 @@ class ReactionRole(commands.Cog):
             try:
                 # Finally, add the role.
                 await payload.member.add_roles(role)
-            except discord.HTTPException:
+            except disnake.HTTPException:
                 # If we want to do something in case of errors we'd do it here.
                 pass
 
-        async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+        async def on_raw_reaction_remove(self, payload: disnake.RawReactionActionEvent):
             """Removes a role based on a reaction emoji."""
             # Make sure that the message the user is reacting to is the one we care about.
             if payload.message_id != self.role_message_id:
@@ -78,15 +78,15 @@ class ReactionRole(commands.Cog):
             try:
                 # Finally, remove the role.
                 await member.remove_roles(role)
-            except discord.HTTPException:
+            except disnake.HTTPException:
                 # If we want to do something in case of errors we'd do it here.
                 pass
 
-    intents = discord.Intents.default()
+    intents = disnake.Intents.default()
     intents.members = True
 
-    import discord
-    from discord.ext import commands
+    import disnake
+    from disnake.ext import commands
 
 
 

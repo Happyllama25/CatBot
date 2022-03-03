@@ -1,4 +1,4 @@
-from discord.ext import commands
+from disnake.ext import commands
 import os
 
 class ReloadCommands(commands.Cog):
