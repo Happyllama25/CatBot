@@ -26,6 +26,8 @@ class CommandEvents(commands.Cog):
             time.sleep(3)
             await message.delete()
 
+        
+
 
 def setup(bot):
     bot.add_cog(CommandEvents(bot))

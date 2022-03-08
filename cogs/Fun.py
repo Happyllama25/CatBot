@@ -10,9 +10,11 @@ class Fun(commands.Cog):
         print(f'{self} has been loaded')
 
     @commands.command(name = "say")
-    async def  say(self, ctx, *, message = 'CatBot is the best'):
+    async def say(self, ctx, *, message = 'CatBot is the best'):
         await ctx.message.delete()
         await ctx.send(message)
+
+
 
     @commands.command(name='catfact', help='Sends a random CatFact.')
     async def catfact(self, ctx, n = 1):
@@ -87,6 +89,10 @@ class Fun(commands.Cog):
 
         await asyncio.sleep(converted_time)
         await ctx.send(f"{ctx.author.mention} your reminder for **{task}** has finished!")
+
+
+
+        
 
 def setup(bot):
     bot.add_cog(Fun(bot))

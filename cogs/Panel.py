@@ -51,7 +51,7 @@ class Panel(commands.Cog):
         server_identifiers.clear()
 
     @commands.command(name = "start", aliases=['stop', 'restart', 'status'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
+    @commands.cooldown(1, 7, commands.BucketType.user)
     async def start(self, ctx, id = 'null'):
         if id == 'null':
             await ctx.send("Please provide the identifier")
