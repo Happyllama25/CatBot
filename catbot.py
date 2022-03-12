@@ -8,6 +8,16 @@ from disnake.ext import commands
 TOKEN = os.getenv('DISCORD_TOKEN')
 extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.SlashCommands']
 
+activities_list = [
+    "you in your sleep", 
+    "the ELEVATED ONES",
+    "#gaming", 
+    "Happyllama25 melt",
+	"you sleep",
+	"over you",
+	"your mom"
+    ]
+
 # , 'cogs.HelpCommands', 'cogs.ServerCommands'
 bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'), intents=disnake.Intents.all())
 bot.remove_command('help')

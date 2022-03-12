@@ -50,12 +50,11 @@ class Panel(commands.Cog):
         server_names.clear()
         server_identifiers.clear()
 
-    @commands.command(name = "start", aliases=['stop', 'restart', 'status'])
-    @commands.cooldown(1, 7, commands.BucketType.user)
+    @commands.command(name = "status", aliases=['restart', 'start'])
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def start(self, ctx, id = 'null'):
         if id == 'null':
             await ctx.send("Please provide the identifier")
-        
         elif id == '4529cae6':
             await ctx.send('lol no')
         else:
@@ -131,7 +130,9 @@ class Panel(commands.Cog):
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=15.0, check=check)
                     print(reaction)
                 except asyncio.TimeoutError:
-                    return print('timed out')
+                    print('timed out')
+                    for emoji in list_of_emojis:
+                        await message.remove_reaction(emoji)
 
                 # if str(reaction.emoji) == "🟢":
                 #     print('green')
@@ -210,7 +211,9 @@ class Panel(commands.Cog):
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=15.0, check=check)
                     print(reaction)
                 except asyncio.TimeoutError:
-                    return print('timed out')
+                    print('timed out')
+                    for emoji in list_of_emojis:
+                        await message.remove_reaction(emoji)
 
                 if str(reaction.emoji) == "🟢":
                     print('green')
@@ -291,7 +294,9 @@ class Panel(commands.Cog):
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=15.0, check=check)
                     print(reaction)
                 except asyncio.TimeoutError:
-                    return print('timed out')
+                    print('timed out')
+                    for emoji in list_of_emojis:
+                        await message.remove_reaction(emoji)
 
                 # if str(reaction.emoji) == "🟢":
                 #     print('green')

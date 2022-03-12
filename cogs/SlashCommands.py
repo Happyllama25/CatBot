@@ -12,9 +12,10 @@ class Slashcommands(commands.Cog):
                             description='Sends bot latency',
                             guild_ids=guilds)
     async def ping(self, ctx):
-        await ctx.send(f'Pong! {round(self.bot.latency * 1000)}ms')
-        
-    
+        await ctx.send(content = f'Pong! {round(self.bot.latency * 1000)}ms', ephemeral = True)
+
+
+
 
 def setup(bot):
     bot.add_cog(Slashcommands(bot))
