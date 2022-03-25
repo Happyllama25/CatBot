@@ -1,14 +1,14 @@
-import os
+import os, random
 from dotenv import load_dotenv
 load_dotenv('config.env')
 import disnake
-from disnake.ext import commands
+from disnake.ext import commands, tasks
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.SlashCommands']
 
-activities_list = [
+watchingStatus = [
     "you in your sleep", 
     "the ELEVATED ONES",
     "#gaming", 
@@ -18,14 +18,41 @@ activities_list = [
 	"your mom"
     ]
 
+playingStatus = [
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+]
+
 # , 'cogs.HelpCommands', 'cogs.ServerCommands'
-bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'), intents=disnake.Intents.all())
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'), intents=disnake.Intents.all(), reload=True, strip_after_prefix=True)
 bot.remove_command('help')
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='fabian fucking die'))
+    await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='Bot Started!'))
     print('Ready!')
+
+# @tasks.loop()
+# async def status_task():
+#     await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='Bot Started!'))
+
+
+# from discord.ext import commands, tasks
+# import asyncio
+
+# # Your code here
+
+# @tasks.loop(seconds=600)
+# async def status_change():
+#     statusNum = random.randint(0, 10)
+#     await bot.change_presence(status=disnake.Status.online, activity=disnake.Activity(type=disnake.ActivityType.watching, name=watchingStatus[statusNum]))
+
+
+
 
 
 @bot.listen("on_message")
@@ -45,7 +72,6 @@ async def on_message(message):
 
 for ext in extensions:
   bot.load_extension(ext)
-
 
 
 try: 

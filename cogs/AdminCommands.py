@@ -1,6 +1,18 @@
-import disnake
+import disnake, os
 from disnake.ext import commands
+from dotenv import load_dotenv
+# load_dotenv('config.env')
 
+# adminrole = int(os.getenv('ADMIN_ROLE_ID'))
+
+import os
+from dotenv import load_dotenv
+load_dotenv('config.env')
+
+adminrole = int(os.getenv('ADMIN_ROLE_ID'))
+
+print(type(adminrole))
+print(adminrole)
 
 class AdminCommands(commands.Cog):
     def __init__(self, bot):
@@ -13,18 +25,46 @@ class AdminCommands(commands.Cog):
 
     #bans a user with a reason
     @commands.command()
-    @commands.has_any_role("THE E L E V A T E D ONES")
-    async def ban (ctx, member:disnake.User=None, reason =None):
+    @commands.has_role(adminrole)
+    async def ban (self, ctx, member:disnake.User=None, reason =None):
         if member == None or member == ctx.message.author:
-            await ctx.channel.send("You cannot ban yourself")
+            message = await ctx.channel.send("Specify user")
+            await message.delete(delay=3)
             return
         if reason == None:
-            reason = "For being a jerk!"
-        message = f"You have been banned from {ctx.guild.name} for {reason}"
+            reason = "not having enough skill"
+        message = f"ur banned from {ctx.guild.name} for {reason}\n\nlol fkin noob"
         await member.send(message)
-        # await ctx.guild.ban(member, reason=reason)
-        await ctx.channel.send(f"{member} is banned!")
+        await ctx.guild.ban(member, reason=reason)
+        await ctx.channel.send(f"{member} has a severe lack of skill")
 
+    #kicks a user with a reason
+    @commands.command()
+    @commands.has_role(adminrole)
+    async def kick(self, ctx, member:disnake.User=None, reason=None):
+        if member == None or member == ctx.message.author:
+            message = await ctx.channel.send("Specify user")
+            await message.delete(delay=3)
+            return
+        if reason == None:
+            reason = "not having enough skill"
+        message = f"u were kicked from {ctx.guild.name} for {reason}\n\nlol noob"
+        await member.send(message)
+        await ctx.guild.kick(member, reason=reason)
+        await ctx.channel.send(f"{member} has a slightly above average lack of skill")
+        
+    @commands.command()
+    @commands.has_role(adminrole)
+    async def unban(self, ctx, member:disnake.User=None, reason=None):
+        if member == None:
+            message = await ctx.channel.send("Specify member")
+            await message.delete(delay=3)
+        if reason == None:
+            reason = "has enough skill"
+        await ctx.guild.unban(member, reason=reason)
+        invite = ctx.guild.create_invite(max_uses=1, max_age=28800) #8 hours
+        await member.send(f'okay you have enough skill pls come back uwu\n\n{invite}')
+    
 
 def setup(bot):
     bot.add_cog(AdminCommands(bot))

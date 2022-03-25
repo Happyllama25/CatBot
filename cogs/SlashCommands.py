@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-guilds = [8888888888, 8888888888]
+guilds = [733408652072845312, 883224856047525888]
 
 class Slashcommands(commands.Cog):
 
