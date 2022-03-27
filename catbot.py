@@ -67,6 +67,8 @@ async def on_message(message):
     if 'https://tenor.com/view/furry-tf2-stfu-sussy-gif-21878916' in message.content:
         print('Keyword found in message')
         await message.channel.send('https://tenor.com/view/shut-up-shut-up-normie-normie-dance-gif-16989611')
+    if 'smart pistol' in message.content:
+        await message.channel.send(f'smart pistol gay-o-meter:\n🟢🟢🟡🟡🔴🔴\n100% - very gay')
 
 
 
