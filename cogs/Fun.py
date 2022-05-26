@@ -102,7 +102,10 @@ class Fun(commands.Cog):
         await asyncio.sleep(converted_time)
         await ctx.send(f"{ctx.author.mention} your reminder for **{task}** has finished!")
 
-
+    @commands.command()
+    async def members(self, ctx):
+        membersBots = len([x for x in ctx.guild.members if not x.bot])
+        await ctx.send(f"Members in `{ctx.guild.name}`: {ctx.guild.member_count}\nBots: {membersBots}")
 
         
 
