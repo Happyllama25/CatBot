@@ -1,3 +1,6 @@
+import os
+import subprocess
+import sys
 import aiohttp, disnake, asyncio
 from disnake.ext import commands
 
@@ -9,12 +12,21 @@ class Fun(commands.Cog):
     async def on_ready(self):
         print(f'{self} has been loaded')
 
+    @commands.command(name='ping')
+    async def ping(self, ctx):
+        await ctx.send(f"Pong! {round(self.bot.latency * 1000) }ms")
+
     @commands.command(name = "say")
     async def say(self, ctx, *, message = 'CatBot is the best'):
         await ctx.message.delete()
         await ctx.send(message)
 
-
+    @commands.command()
+    async def kys(self, ctx):
+        await ctx.send('ok')
+        subprocess.call([sys.executable, os.path.realpath(__file__)] +
+        sys.argv[1:])
+        
 
     @commands.command(name='catfact', help='Sends a random CatFact.')
     async def catfact(self, ctx, n = 1):

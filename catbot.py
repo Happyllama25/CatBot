@@ -6,7 +6,13 @@ from disnake.ext import commands, tasks
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.SlashCommands']
+enabled = ['Fun', 'CommandEvents', 'Uptime', 'Feet', 'Panel', 'SlashCommands', 'AdminCommands', 'dnd']
+
+# initializing append_str
+append_str = 'cogs.'
+  
+# Append suffix / prefix to strings in list
+extensions = [append_str + sub for sub in enabled]
 
 watchingStatus = [
     "you in your sleep", 
@@ -16,13 +22,9 @@ watchingStatus = [
 	"you sleep",
 	"over you",
 	"your mom"
-    ]
+]
 
 playingStatus = [
-    "",
-    "",
-    "",
-    "",
     "",
     ""
 ]
@@ -35,6 +37,7 @@ bot.remove_command('help')
 async def on_ready():
     await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='Bot Started!'))
     print('Ready!')
+    print('---------------------------------------')
 
 # @tasks.loop()
 # async def status_task():
