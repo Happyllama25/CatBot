@@ -7,7 +7,7 @@ load_dotenv('config.env')
 from disnake.ext import commands
 
 API_KEY = os.getenv('API_KEY')
-PanelDomain = os.getenv('PanelDomain')
+
 
 
 class Panel(commands.Cog):
@@ -19,66 +19,39 @@ class Panel(commands.Cog):
         print(f'{self} Panel has loaded mr furry')
 
     @commands.command(name = "servers")
-    async def servers(self, ctx, number):
+    async def servers(self, ctx):
+        message = await ctx.send('Requesting data...')
 
-        url = f'https://{PanelDomain}/api/client'
+        url = 'https://panel.happyllama25.net/api/client'
         headers = {
             "Authorization": f"Bearer {API_KEY}",
             "Accept": "application/json"
         }
+
         data = requests.get(url, headers=headers)
         server_names = []
         server_identifiers = []
         time = round(data.elapsed.microseconds / 1000)
-
-
-        message = await ctx.send('Requesting data...')
-   
-        embed = disnake.Embed()
-        embed.add_field("Numbers", "\n".join(map(str, range(1, len(server_identifiers) + 1))))
-        embed.add_field("Name", "\n".join(server_names for server in server))
-        embed.add_field("Identifier", "\n".join(server_identifiers for server in servers))
-        ctx.send(embed)
-
-
-
-
-
-# --------------------------------------------------------------------------------------------------------
-#         url = f'https://{PanelDomain}/api/client'
-#         headers = {
-#             "Authorization": f"Bearer {API_KEY}",
-#             "Accept": "application/json"
-#         }
-
-#         data = requests.get(url, headers=headers)
-#         server_names = []
-#         server_identifiers = []
-#         time = round(data.elapsed.microseconds / 1000)
   
 
-#         for server in data.json()['data']:
+        for server in data.json()['data']:
 
-#             server_names.append(server['attributes'] ['name'])
+            server_names.append(server['attributes'] ['name'])
 
-#         for server in data.json()['data']:
+        for server in data.json()['data']:
 
-#             server_identifiers.append(server['attributes'] ['identifier'])
+            server_identifiers.append(server['attributes'] ['identifier'])
 
-#         for n,item in enumerate(server_identifiers):
-#             print(f'{n}: {item}')
-#             embed.add_field(name=None)
+        embed=disnake.Embed(title="Available Servers", color=0x1835e7)
+        embed.add_field(name="Name", value='\n'.join(server_names), inline=True)
+        embed.add_field(name="Identifier", value='\n'.join(server_identifiers), inline=True)
+        embed.set_footer(text=str(ctx.author) + f" ⚫ response time: " + str(time) + 'ms')
+        await message.edit(content=None, embed=embed)
+        server_names.clear()
+        server_identifiers.clear()
 
-#         embed=disnake.Embed(title="Available Servers", color=0x1835e7)
-#         embed.add_field(name="Name", value='\n'.join(server_names), inline=True)
-#         embed.add_field(name="Identifier", value='\n'.join(server_identifiers), inline=True)
-#         embed.set_footer(text=str(ctx.author) + f" ⚫ response time: " + str(time) + 'ms')
-#         await message.edit(content=None, embed=embed)
-#         server_names.clear()
-#         server_identifiers.clear()
-
-    @commands.command(name = "status", aliases=['restart', 'start'])
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.command(name = "stats", aliases=['stat', 's'])
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def start(self, ctx, id = 'null'):
         if id == 'null':
             await ctx.send("Please provide the identifier")
@@ -87,7 +60,7 @@ class Panel(commands.Cog):
         else:
             message = await ctx.send("Querying node...")
             #Query for resources API (status, uptime, memory usage, etc)
-            url = f'https://{PanelDomain}/api/client/servers/{id}/resources'
+            url = f'https://panel.happyllama25.net/api/client/servers/{id}/resources'
             headers = {
                 "Authorization": f"Bearer {API_KEY}",
                 "Accept": "application/json"
@@ -109,7 +82,7 @@ class Panel(commands.Cog):
             await message.edit(content="Querying panel...")
 
             #Query for name, allocation, port
-            url_name = f'https://{PanelDomain}/api/client/servers/{id}'
+            url_name = f'https://panel.happyllama25.net/api/client/servers/{id}'
 
             dataname = requests.get(url_name, headers=headers)
 
@@ -157,14 +130,12 @@ class Panel(commands.Cog):
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=15.0, check=check)
                     print(reaction)
                 except asyncio.TimeoutError:
-                    print('timed out')
-                    for emoji in list_of_emojis:
-                        await message.remove_reaction(emoji)
+                    return print('timed out')
 
                 # if str(reaction.emoji) == "🟢":
                 #     print('green')
                 #     await ctx.send('Sending start request...')
-                #     url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                #     url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                 #     headers = {
                 #         "Authorization": f"Bearer {API_KEY}",
                 #         "Accept": "application/json"
@@ -180,7 +151,7 @@ class Panel(commands.Cog):
                 if str(reaction.emoji) == "🟡":
                     print('yellow')
                     await ctx.send('Sending restart request...')
-                    url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"
@@ -196,7 +167,7 @@ class Panel(commands.Cog):
                 if str(reaction.emoji) == "🔴":
                     print('red')
                     await ctx.send('Sending stop request...')
-                    url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"
@@ -238,14 +209,12 @@ class Panel(commands.Cog):
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=15.0, check=check)
                     print(reaction)
                 except asyncio.TimeoutError:
-                    print('timed out')
-                    for emoji in list_of_emojis:
-                        await message.remove_reaction(emoji)
+                    return print('timed out')
 
                 if str(reaction.emoji) == "🟢":
                     print('green')
                     await ctx.send('Sending start request...')
-                    url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"
@@ -261,7 +230,7 @@ class Panel(commands.Cog):
                 # if str(reaction.emoji) == "🟡":
                 #     print('yellow')
                 #     await ctx.send('Sending restart request...')
-                #     url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                #     url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                 #     headers = {
                 #         "Authorization": f"Bearer {API_KEY}",
                 #         "Accept": "application/json"
@@ -277,7 +246,7 @@ class Panel(commands.Cog):
                 # if str(reaction.emoji) == "🔴":
                 #     print('red')
                 #     await ctx.send('Sending stop request...')
-                #     url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                #     url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                 #     headers = {
                 #         "Authorization": f"Bearer {API_KEY}",
                 #         "Accept": "application/json"
@@ -321,14 +290,12 @@ class Panel(commands.Cog):
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=15.0, check=check)
                     print(reaction)
                 except asyncio.TimeoutError:
-                    print('timed out')
-                    for emoji in list_of_emojis:
-                        await message.remove_reaction(emoji)
+                    return print('timed out')
 
                 # if str(reaction.emoji) == "🟢":
                 #     print('green')
                 #     await ctx.send('Sending start request...')
-                #     url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                #     url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                 #     headers = {
                 #         "Authorization": f"Bearer {API_KEY}",
                 #         "Accept": "application/json"
@@ -344,7 +311,7 @@ class Panel(commands.Cog):
                 if str(reaction.emoji) == "🟡":
                     print('yellow')
                     message = await ctx.send('Sending restart request...')
-                    url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"
@@ -360,7 +327,7 @@ class Panel(commands.Cog):
                 if str(reaction.emoji) == "🔴":
                     print('red')
                     message = await ctx.send('Sending stop request...')
-                    url = f'https://{PanelDomain}/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"

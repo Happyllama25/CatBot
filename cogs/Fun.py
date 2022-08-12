@@ -12,10 +12,7 @@ class Fun(commands.Cog):
     async def on_ready(self):
         print(f'{self} has been loaded')
 
-    @commands.command(name='ping')
-    async def ping(self, ctx):
-        await ctx.send(f"Pong! {round(self.bot.latency * 1000) }ms")
-
+        
     @commands.command(name = "say")
     async def say(self, ctx, *, message = 'CatBot is the best'):
         await ctx.message.delete()
@@ -104,7 +101,7 @@ class Fun(commands.Cog):
 
     @commands.command()
     async def members(self, ctx):
-        membersBots = len([x for x in ctx.guild.members if not x.bot])
+        membersBots = ctx.guild.member_count - len([x for x in ctx.guild.members if not x.bot])
         await ctx.send(f"Members in `{ctx.guild.name}`: {ctx.guild.member_count}\nBots: {membersBots}")
 
         

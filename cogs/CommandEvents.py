@@ -43,9 +43,11 @@ class CommandEvents(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: disnake.Message, after: disnake.Message):
+        if before.author == self.bot.user:
+            return ctx
         time = datetime.now().strftime('%H:%M:%S')
         embed = disnake.Embed(title="{} edited a message".format(before.author.name),
-                        description="", color=0xFF0000)
+                          description="", color=0xFF0000)
         embed.add_field(name=before.content, value="Before the edit",
                         inline=True)
         embed.add_field(name=after.content, value="After the edit",
