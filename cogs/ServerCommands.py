@@ -31,7 +31,7 @@ class ServerCommands(commands.Cog):
         await ctx.send(embed=embed)
     @commands.command(name='ip')
     async def ip(self, ctx):
-        await ctx.send("IP's for games and things is: `73.49.109.86`")
+        await ctx.send("IP's for games and things is: `-.-.-.-`")
     @commands.command(name='start', aliases=['starty', 'bored', 'mc', 'join'])
     async def start(self, ctx): 
         embed=disnake.Embed(title='View the Map in Browser',
@@ -76,7 +76,7 @@ class ServerCommands(commands.Cog):
     #             await channel.send('Starting 2 Jigglybit server')
     #             subprocess.Popen(r'D:\server-dont-delete-ffs\creative_server\start2.bat', cwd=r'D:\server-dont-delete-ffs\creative_server', shell=True)
     #             embed=disnake.Embed(title='View Map in Browser',
-    #             url='http://73.49.109.86:8100/',
+    #             url='http://-.-.-.-:8100/',
     #             color=0x5f0aee,
     #             description='Starting the server with 2 Jigglybits')
     #             embed.set_footer(text='Join on port 25567')

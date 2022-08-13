@@ -17,14 +17,7 @@ class Fun(commands.Cog):
     async def say(self, ctx, *, message = 'CatBot is the best'):
         await ctx.message.delete()
         await ctx.send(message)
-
-    @commands.command()
-    async def kys(self, ctx):
-        await ctx.send('ok')
-        subprocess.call([sys.executable, os.path.realpath(__file__)] +
-        sys.argv[1:])
         
-
     @commands.command(name='catfact', help='Sends a random CatFact.')
     async def catfact(self, ctx, n = 1):
         for i in range(n):
@@ -54,7 +47,6 @@ class Fun(commands.Cog):
                 await ctx.send("Loop amount can't be greater than 5 or less than 0")
                 break
                 
-
     @commands.command(name='bricc', help='bricc')
     async def bricc(self, ctx, n = 1):
         for i in range(n):
@@ -102,9 +94,20 @@ class Fun(commands.Cog):
     @commands.command()
     async def members(self, ctx):
         membersBots = ctx.guild.member_count - len([x for x in ctx.guild.members if not x.bot])
-        await ctx.send(f"Members in `{ctx.guild.name}`: {ctx.guild.member_count}\nBots: {membersBots}")
+        membersUsers = len([x for x in ctx.guild.members if not x.bot])
+        await ctx.send(f"Total members: {ctx.guild.member_count}\nBots: {membersBots}\nUsers: {membersUsers}")
 
-        
+    @commands.command()
+    async def changepres(self, ctx, type, *, message):
+        if type and message == None or type != 'watching' or 'listening' or 'streaming':
+            await ctx.message.send(f"Possible types are: watching, streaming and listening")
+            return
+        typeFull = f'disnake.Activity.{type}'
+        await self.bot.change_presence(activity=disnake.Activity(type=typeFull, name=message))
+        await ctx.message.send(f'Activity changed to `{type} {message}`')
+
+    
+    
 
 def setup(bot):
     bot.add_cog(Fun(bot))

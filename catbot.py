@@ -1,4 +1,4 @@
-import os, random
+import os, random, asyncio
 from dotenv import load_dotenv
 load_dotenv('config.env')
 import disnake
@@ -35,6 +35,8 @@ bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'), intents=disna
 async def on_ready():
     await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='Bot Started!'))
     print('Ready!')
+    await asyncio.sleep(5)
+    await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='a laser pointer!'))
 
 # @tasks.loop()
 # async def status_task():
