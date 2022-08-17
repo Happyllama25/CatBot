@@ -106,8 +106,6 @@ class Fun(commands.Cog):
         await self.bot.change_presence(activity=disnake.Activity(type=typeFull, name=message))
         await ctx.message.send(f'Activity changed to `{type} {message}`')
 
-    
-    
 
 def setup(bot):
     bot.add_cog(Fun(bot))

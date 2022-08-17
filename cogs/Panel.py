@@ -14,7 +14,7 @@ class Panel(commands.Cog):
     def __init__(self, bot:commands.Bot):
         self.bot = bot
 
-    @commands.Cog.listener()
+    @commands.Cog.listener() 
     async def on_ready(self):
         print(f'{self} Panel has loaded mr furry')
 

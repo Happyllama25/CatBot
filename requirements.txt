@@ -1,1 +1,1 @@
-disnake.py==1.7.3
+disnake.py==2.5.2

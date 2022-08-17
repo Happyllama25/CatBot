@@ -6,7 +6,7 @@ from disnake.ext import commands, tasks
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.SlashCommands', 'cogs.dnd']
+extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.SlashCommands', 'cogs.dnd', 'cogs.AdminCommands']
 
 watchingStatus = [
     "you in your sleep", 
@@ -28,7 +28,7 @@ playingStatus = [
 ]
 
 # , 'cogs.HelpCommands', 'cogs.ServerCommands'
-bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'), intents=disnake.Intents.all(), reload=True, strip_after_prefix=True)
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('!'), intents=disnake.Intents.all(), reload=True, strip_after_prefix=True)
 
 
 @bot.event
