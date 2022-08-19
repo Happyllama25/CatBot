@@ -50,7 +50,7 @@ class AdminCommands(commands.Cog):
     @commands.has_role(adminrole)
     async def ban (self, ctx, member:disnake.User=None, reason='not having enough skill'):
         if member == None or member == ctx.message.author:
-            message = await ctx.channel.send("Specify user")
+            message = await ctx.send("Specify user")
             await message.delete(delay=3)
             await ctx.message.delete(delay=3)
             return
@@ -58,9 +58,9 @@ class AdminCommands(commands.Cog):
             message = f"ur banned from {ctx.guild.name} for {reason}\n\nlol fkin noob"
             await member.send(message)
             await ctx.guild.ban(member, reason=reason)
-            await ctx.channel.send(f"{member} has a severe lack of skill")
+            await ctx.send(f"{member} has a severe lack of skill")
         except Exception as error:
-            await ctx.channel.send(f'Error:\n{error}')
+            await ctx.send(f'Error:\n{error}')
 
 
     #kicks a user with a reason
@@ -68,28 +68,28 @@ class AdminCommands(commands.Cog):
     @commands.has_role(adminrole)
     async def kick(self, ctx, member:disnake.User=None, reason='not having enough skill'):
         if member == None or member == ctx.message.author:
-            message = await ctx.channel.send("Specify user")
+            message = await ctx.send("Specify user")
             await message.delete(delay=3)
             await ctx.message.delete(delay=3)
             return
         message = f"u were kicked from {ctx.guild.name} for {reason}\n\nuwu rawr OwO"
         await member.send(message)
         await ctx.guild.kick(member, reason=reason)
-        await ctx.channel.send(f"{member} has a slightly above average lack of skill")
+        await ctx.send(f"{member} has a slightly above average lack of skill")
         
     @commands.command()
     @commands.has_role(adminrole)
     async def unban(self, ctx, member:disnake.User=None, reason='has enough skill'):
         if member == None:
-            message = await ctx.channel.send("Specify user ID")
+            message = await ctx.send("Specify user ID")
             await message.delete(delay=3)
             await ctx.message.delete(delay=3)
             return
         try: 
             await ctx.guild.unban(user=member, reason=reason)
-            await ctx.message.send(f'Unbanned {member}')
+            await ctx.send(f'Unbanned {member}')
         except:
-            await ctx.message.send(f'Could not unban {member} (Needs user ID)')
+            await ctx.send(f'Could not unban {member} (Needs user ID)')
       
     @commands.command(aliases=['purge', 'delete', 'del']) #Clear Command
     @commands.has_permissions(manage_messages = True)
