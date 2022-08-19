@@ -54,10 +54,14 @@ class AdminCommands(commands.Cog):
             await message.delete(delay=3)
             await ctx.message.delete(delay=3)
             return
-        message = f"ur banned from {ctx.guild.name} for {reason}\n\nlol fkin noob"
-        await member.send(message)
-        await ctx.guild.ban(member, reason=reason)
-        await ctx.channel.send(f"{member} has a severe lack of skill")
+        try:
+            message = f"ur banned from {ctx.guild.name} for {reason}\n\nlol fkin noob"
+            await member.send(message)
+            await ctx.guild.ban(member, reason=reason)
+            await ctx.channel.send(f"{member} has a severe lack of skill")
+        except Exception as error:
+            await ctx.channel.send(f'Error:\n{error}')
+
 
     #kicks a user with a reason
     @commands.command()

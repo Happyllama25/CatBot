@@ -45,8 +45,23 @@ class Fun(commands.Cog):
                     await asyncio.sleep(1)
             if n >= 6 or n <= 0:
                 await ctx.send("Loop amount can't be greater than 5 or less than 0")
-                break
-                
+                return
+
+    @commands.command(name='insult', help='Sends a random insult')
+    async def insult(self, ctx, user:disnake.User=None):
+        async with aiohttp.ClientSession() as session:
+            if user == None:
+                async with session.get("https://insult.mattbas.org/api/insult") as response:
+                    insult = await response.txt() 
+                    await ctx.send(capitalize(insult))
+                    return
+
+            target = user.display_name
+            async with session.get("https://insult.mattbas.org/api/") as response:
+                insult = await response.txt()
+
+            
+
     @commands.command(name='bricc', help='bricc')
     async def bricc(self, ctx, n = 1):
         for i in range(n):
@@ -56,7 +71,7 @@ class Fun(commands.Cog):
             await asyncio.sleep(1)
             if n >= 6 or n <= 0:
                 await ctx.send("Loop amount can't be greater than 5 or less than 0")
-                break
+                return
 
     @commands.command(name='remind', help='Reminds you of something with time')
     async def remind(self, ctx, time, *, task):
