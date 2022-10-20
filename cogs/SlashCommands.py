@@ -14,6 +14,11 @@ class Slashcommands(commands.Cog):
     async def ping(self, ctx):
         await ctx.send(content = f'Pong! {round(self.bot.latency * 1000)}ms', ephemeral = True)
 
+@commands.slash_command(name='presence',
+                        description="Change the bot's presence message",
+                        guild_ids=guilds)
+    async def presence(self, ctx):
+        
 
 
 
