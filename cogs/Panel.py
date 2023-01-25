@@ -1,6 +1,4 @@
-import asyncio
-from cgi import test
-import disnake
+import asyncio, disnake
 import requests, os
 from dotenv import load_dotenv
 load_dotenv('config.env')
@@ -28,11 +26,12 @@ class Panel(commands.Cog):
             "Accept": "application/json"
         }
 
-        data = requests.get(url, headers=headers)
+
+        data = requests.get(url, headers=headers, timeout=10)
         server_names = []
         server_identifiers = []
         time = round(data.elapsed.microseconds / 1000)
-  
+
 
         for server in data.json()['data']:
 
@@ -45,61 +44,52 @@ class Panel(commands.Cog):
         embed=disnake.Embed(title="Available Servers", color=0x1835e7)
         embed.add_field(name="Name", value='\n'.join(server_names), inline=True)
         embed.add_field(name="Identifier", value='\n'.join(server_identifiers), inline=True)
-        embed.set_footer(text=str(ctx.author) + f" ⚫ response time: " + str(time) + 'ms')
+        embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
         await message.edit(content=None, embed=embed)
         server_names.clear()
         server_identifiers.clear()
 
     @commands.command(name = "stats", aliases=['stat', 's'])
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def start(self, ctx, id = 'null'):
-        if id == 'null':
+    async def start(self, ctx, ident = 'null'):
+        if ident == 'null':
             await ctx.send("Please provide the identifier")
-        elif id == '4529cae6' and ctx.author != self.bot.owner:
+        elif ident == '4529cae6' and ctx.author != self.bot.owner:
             await ctx.send('lol no')
         else:
             message = await ctx.send("Querying node...")
             #Query for resources API (status, uptime, memory usage, etc)
-            url = f'https://panel.happyllama25.net/api/client/servers/{id}/resources'
+            url = f'https://panel.happyllama25.net/api/client/servers/{ident}/resources'
             headers = {
                 "Authorization": f"Bearer {API_KEY}",
                 "Accept": "application/json"
             }
 
-            dataresources = requests.get(url, headers=headers)
-
+            dataresources = requests.get(url, headers=headers, timeout=10)
             server_status = dataresources.json()['attributes']['current_state']
-            
             memory_unmathed = dataresources.json()['attributes']['resources']['memory_bytes']
 
             cpu_raw = dataresources.json()['attributes']['resources']['cpu_absolute']
-
             cpu_usage = round(cpu_raw, 2)
-
-
             memory = round(memory_unmathed / 1000000000, 2)
 
             await message.edit(content="Querying panel...")
 
             #Query for name, allocation, port
-            url_name = f'https://panel.happyllama25.net/api/client/servers/{id}'
-
-            dataname = requests.get(url_name, headers=headers)
-
+            url_name = f'https://panel.happyllama25.net/api/client/servers/{ident}'
+            dataname = requests.get(url_name, headers=headers, timeout=10)
             name = dataname.json()['attributes']['name']
 
             for server in dataname.json()['attributes']['relationships']['allocations']['data']:
-
                 allocation = server['attributes']['ip_alias']
 
             for server in dataname.json()['attributes']['relationships']['allocations']['data']:
-
                 port = server['attributes']['port']
 
 
             statusresource = dataresources.status_code
             statusname = dataname.status_code
-            statuscode = "resource: " + str(statusresource) + " name: " + str(statusname)
+            statuscode = f'resource: {str(statusresource)} name: {str(statusname)}'
             timeresource = round(dataresources.elapsed.microseconds / 1000)
             timename = round(dataname.elapsed.microseconds / 1000)
             time = timeresource + timename / 2
@@ -114,7 +104,7 @@ class Panel(commands.Cog):
                 embed.add_field(name="Memory Usage", value=str(memory) + ' GB', inline=False)
                 embed.add_field(name="CPU Usage", value=str(cpu_usage) + '%', inline=True)
                 embed.add_field(name="IP:PORT", value=allocation + ':' + str(port), inline=True)
-                embed.set_footer(text=str(ctx.author) + f" ⚫ response time: " + str(time))
+                embed.set_footer(text=f"{str(ctx.author)} ⚫ response time: {str(time)}")
                 await message.edit(content=None, embed=embed)
                 # ADD REACTIONS TO START STOP AND RESTART
 
@@ -136,7 +126,7 @@ class Panel(commands.Cog):
                 # if str(reaction.emoji) == "🟢":
                 #     print('green')
                 #     await ctx.send('Sending start request...')
-                #     url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
+                #     url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
                 #     headers = {
                 #         "Authorization": f"Bearer {API_KEY}",
                 #         "Accept": "application/json"
@@ -152,33 +142,34 @@ class Panel(commands.Cog):
                 if str(reaction.emoji) == "🟡":
                     print('yellow')
                     await ctx.send('Sending restart request...')
-                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"
                     }
                     payload = {'signal': 'restart'}
-                    response = requests.post(url, headers=headers, data=payload)
+                    response = requests.post(url, headers=headers, data=payload, timeout=10)
                     if response.status_code == 204:
                         await ctx.send('Request approved')
                     else:
-                        await ctx.send('Something unexpected happened: ' + response)
+                        embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
+
                     return
 
                 if str(reaction.emoji) == "🔴":
                     print('red')
                     message = await ctx.send('Sending stop request...')
-                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"
                     }
                     payload = {'signal': 'stop'}
-                    response = requests.post(url, headers=headers, data=payload)
+                    response = requests.post(url, headers=headers, data=payload, timeout=10)
                     if response.status_code == 204:
                         await message.edit('Request approved')
                     else:
-                        await message.edit('Something unexpected happened: ' + response)
+                        embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
                     return
 
                 else:
@@ -216,17 +207,17 @@ class Panel(commands.Cog):
                 if str(reaction.emoji) == "🟢":
                     print('green')
                     await ctx.send('Sending start request...')
-                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"
                     }
                     payload = {'signal': 'start'}
-                    response = requests.post(url, headers=headers, data=payload)
+                    response = requests.post(url, headers=headers, data=payload, timeout=10)
                     if response.status_code == 204:
                         await ctx.send('Request approved')
                     else:
-                        await ctx.send('Something unexpected happened: ' + response)
+                        embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
                     return
 
                 # if str(reaction.emoji) == "🟡":
@@ -276,7 +267,7 @@ class Panel(commands.Cog):
                 embed.add_field(name="Memory Usage", value=str(memory) + ' GB', inline=False)
                 embed.add_field(name="CPU Usage", value=str(cpu_usage) + '%', inline=True)
                 embed.add_field(name="IP:PORT", value=allocation + ':' + str(port), inline=True)
-                embed.set_footer(text=str(ctx.author) + f" ⚫ response time: " + str(time))
+                embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
                 await message.edit(content=None, embed=embed)
                 # ADD REACTIONS TO START STOP AND RESTART
 
@@ -313,17 +304,17 @@ class Panel(commands.Cog):
                 if str(reaction.emoji) == "🟡":
                     print('yellow')
                     message = await ctx.send('Sending restart request...')
-                    url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
+                    url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
                         "Accept": "application/json"
                     }
                     payload = {'signal': 'restart'}
-                    response = requests.post(url, headers=headers, data=payload)
+                    response = requests.post(url, headers=headers, data=payload, timeout=10)
                     if response.status_code == 204:
                         await message.edit(content='Request approved')
                     else:
-                        await message.edit(content=response.status_code + ' - Something unexpected happened: ' + response)
+                        await message.edit(content=f'{response.status_code} - Request rejected: {response}')
                     return
 
                 if str(reaction.emoji) == "🔴":
@@ -335,7 +326,7 @@ class Panel(commands.Cog):
                         "Accept": "application/json"
                     }
                     payload = {'signal': 'stop'}
-                    response = requests.post(url, headers=headers, data=payload)
+                    response = requests.post(url, headers=headers, data=payload, timeout=10)
                     if response.status_code == 204:
                         await message.edit(content='Request approved')
                     else:
@@ -360,7 +351,7 @@ class Panel(commands.Cog):
                 embed.add_field(name="Memory Usage", value=str(memory) + ' GB', inline=False)
                 embed.add_field(name="CPU Usage", value=str(cpu_usage) + '%', inline=True)
                 embed.add_field(name="IP:PORT", value=allocation + ':' + str(port), inline=True)
-                embed.set_footer(text=str(ctx.author) + f" ⚫ response time: " + str(time))
+                embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
                 await ctx.send(embed=embed)
                 await ctx.send('Something unexpected happened, pls ping Happyllama25#0001 about this')
 
