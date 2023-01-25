@@ -14,7 +14,7 @@ class Panel(commands.Cog):
     def __init__(self, bot:commands.Bot):
         self.bot = bot
 
-    @commands.Cog.listener() 
+    @commands.Cog.listener()
     async def on_ready(self):
         print(f'{self} Panel has loaded mr furry')
 
@@ -109,8 +109,8 @@ class Panel(commands.Cog):
             if server_status == "running":
                 embed=disnake.Embed(title="Server Status", color=0x22dbdd)
                 embed.add_field(name="Name", value=name, inline=True)
-                embed.add_field(name="Status", value=server_status.capitalize(), inline=True)
-                embed.add_field(name="Icon", value="🟢", inline=True) # Emoji line
+                embed.add_field(name="Status", value=f"{server_status.capitalize()}    🟢", inline=True)
+                #embed.add_field(name="Icon", value="🟢", inline=True) # Emoji line
                 embed.add_field(name="Memory Usage", value=str(memory) + ' GB', inline=False)
                 embed.add_field(name="CPU Usage", value=str(cpu_usage) + '%', inline=True)
                 embed.add_field(name="IP:PORT", value=allocation + ':' + str(port), inline=True)
@@ -130,7 +130,8 @@ class Panel(commands.Cog):
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=15.0, check=check)
                     print(reaction)
                 except asyncio.TimeoutError:
-                    return print('timed out')
+                    print('timed out')
+                    return await message.add_reaction('⌛️')
 
                 # if str(reaction.emoji) == "🟢":
                 #     print('green')
@@ -166,7 +167,7 @@ class Panel(commands.Cog):
 
                 if str(reaction.emoji) == "🔴":
                     print('red')
-                    await ctx.send('Sending stop request...')
+                    message = await ctx.send('Sending stop request...')
                     url = f'https://panel.happyllama25.net/api/client/servers/{id}/power'
                     headers = {
                         "Authorization": f"Bearer {API_KEY}",
@@ -175,9 +176,9 @@ class Panel(commands.Cog):
                     payload = {'signal': 'stop'}
                     response = requests.post(url, headers=headers, data=payload)
                     if response.status_code == 204:
-                        await ctx.send('Request approved')
+                        await message.edit('Request approved')
                     else:
-                        await ctx.send('Something unexpected happened: ' + response)
+                        await message.edit('Something unexpected happened: ' + response)
                     return
 
                 else:
@@ -191,8 +192,8 @@ class Panel(commands.Cog):
             elif server_status == "offline":
                 embed=disnake.Embed(title="Server Status", color=0xdd2422)
                 embed.add_field(name="Name", value=name, inline=True)
-                embed.add_field(name="Status", value=server_status.capitalize(), inline=True)
-                embed.add_field(name="Icon", value="🔴", inline=True) # Emoji line
+                embed.add_field(name="Status", value=f'{server_status.capitalize()}    🔴', inline=True)
+                #embed.add_field(name="Icon", value="🔴", inline=True) # Emoji line // dont need the emoji line anymore, keeping for reference
                 embed.set_footer(text=str(ctx.author) + f" ⚫ response time: " + str(time))
                 await message.edit(content=None, embed=embed)
                 # ADD REACTIONS TO START STOP AND RESTART
@@ -209,7 +210,8 @@ class Panel(commands.Cog):
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=15.0, check=check)
                     print(reaction)
                 except asyncio.TimeoutError:
-                    return print('timed out')
+                    print('timed out')
+                    return await message.add_reaction('⌛️')
 
                 if str(reaction.emoji) == "🟢":
                     print('green')

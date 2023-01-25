@@ -24,7 +24,7 @@ class ServerCommands(commands.Cog):
 
     @commands.command(aliases=['hardcore', 'hard'])
     async def starthard(self, ctx): 
-        subprocess.Popen(r'C:\Users\fabse\Desktop\Creations\Python\Servers\hardcore\start.bat', cwd=r'C:\Users\fabse\Desktop\Creations\Python\Servers\hardcore', shell=True)
+        subprocess.Popen(r'C:\Users\---\Desktop\Creations\Python\Servers\hardcore\start.bat', cwd=r'C:\Users\---\Desktop\Creations\Python\Servers\hardcore', shell=True)
         embed=disnake.Embed(color=0x5f0aee,
         description='Server Starting...')
         embed.set_footer(text='Join with default ip (no port)')
@@ -35,22 +35,22 @@ class ServerCommands(commands.Cog):
     @commands.command(name='start', aliases=['starty', 'bored', 'mc', 'join'])
     async def start(self, ctx): 
         embed=disnake.Embed(title='View the Map in Browser',
-        url='http://game.happyllama25.net:8100/',
+        url='http://------:8100/',
         color=0x5f0aee,
         description='Server is *usually* **always turned on**!')
-        embed.set_footer(text='Join at: **game.happyllama25.net**')
+        embed.set_footer(text='Join at: **---------**')
         await ctx.send(embed=embed)
 
     # @commands.command()
     # async def startsibbi(self, ctx): 
-    #     subprocess.Popen(r'C:\Users\fabse\Desktop\Creations\Servers\sibbi-survival\start.bat', cwd=r'C:\Users\fabse\Desktop\Creations\Servers\sibbi-survival', shell=True)
+    #     subprocess.Popen(r'C:\Users\---\Desktop\Creations\Servers\sibbi-survival\start.bat', cwd=r'C:\Users\---\Desktop\Creations\Servers\sibbi-survival', shell=True)
     #     embed=disnake.Embed(color=0x5f0aee,
     #     description='Server Starting...')
     #     await ctx.send(embed=embed)
 
     @commands.command(aliases=['modded', 'mods'])
     async def startmodded(self, ctx): 
-        subprocess.Popen(r'C:\Users\fabse\Desktop\Creations\Python\Servers\ldoh_0.3.1_serverpack\start.bat', cwd=r'C:\Users\fabse\Desktop\Creations\Python\Servers\ldoh_0.3.1_serverpack', shell=True)
+        subprocess.Popen(r'C:\Users\---\Desktop\Creations\Python\Servers\ldoh_0.3.1_serverpack\start.bat', cwd=r'C:\Users\---\Desktop\Creations\Python\Servers\ldoh_0.3.1_serverpack', shell=True)
         embed=disnake.Embed(color=0x5f0aee,
         description='Server Starting (it might take a while)...')
         await ctx.send(embed=embed)
