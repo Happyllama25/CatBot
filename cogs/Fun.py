@@ -53,7 +53,7 @@ class Fun(commands.Cog):
             if user == None:
                 async with session.get("https://insult.mattbas.org/api/insult") as response:
                     insult = await response.txt() 
-                    await ctx.send(capitalize(insult))
+                    await ctx.send(insult.capitalize())
                     return
 
             target = user.display_name
