@@ -18,15 +18,6 @@ watchingStatus = [
 	"your mom"
     ]
 
-playingStatus = [
-    "",
-    "",
-    "",
-    "",
-    "",
-    ""
-]
-
 # , 'cogs.HelpCommands', 'cogs.ServerCommands'
 bot = commands.Bot(command_prefix=commands.when_mentioned_or('!'), intents=disnake.Intents.all(), reload=True, strip_after_prefix=True)
 
