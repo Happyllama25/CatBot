@@ -50,9 +50,8 @@ class Panel(commands.Cog):
         server_identifiers.clear()
 
     @commands.command(name = "stats", aliases=['stat', 's'])
-    @commands.cooldown(1, 15, commands.BucketType.user)
-    async def start(self, ctx, ident = 'null'):
-        if ident == 'null':
+    async def start(self, ctx, ident = 'pee pee poo poo hee hee har har'):
+        if ident == 'pee pee poo poo hee hee har har':
             await ctx.send("Please provide the identifier")
         elif ident == '4529cae6' and ctx.author != self.bot.owner:
             await ctx.send('lol no')

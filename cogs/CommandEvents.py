@@ -28,32 +28,34 @@ class CommandEvents(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            message = await ctx.send(f'This command is on cooldown, you can use it in {round(error.retry_after)} seconds.')
-            await message.delete(delay=3)
+            await ctx.send(f'This command is on cooldown, you can use it in {round(error.retry_after)} seconds.')
         else:
             print(error)
             await ctx.send(f'An unknown error has occured\n\n{error}')
 
-    # @commands.Cog.listener()
-    # async def on_message_delete(self, message: disnake.Message):
-    #     time = datetime.now().strftime('%H:%M:%S')
-    #     embed = disnake.Embed(title="{} deleted a message".format(message.author.name),
-    #                         description="", color=0xFF0000)
-    #     embed.add_field(name=f"Message deleted in {message.channel}", value=message.content,
-    #                     inline=True)
-    #     embed.set_footer(text=f'ID: {message.id} • Time: {time}')
-    #     channel = self.bot.get_channel(channelID)
-    #     await channel.send(embed=embed)
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: disnake.Message):
+        time = datetime.now().strftime('%H:%M:%S')
+        embed = disnake.Embed(title="{} deleted a message".format(message.author.name),
+                            description="", color=0xFF0000)
+        embed.add_field(name=f"Message deleted in {message.channel}", value=message.content,
+                        inline=True)
+        embed.set_footer(text=f'ID: {message.id} • Time: {time}')
+        channel = self.bot.get_channel(channelID)
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: disnake.Message, after: disnake.Message):
-        return if before.author == self.bot.user
+        if before.author == self.bot.user:
+            return
+        if before.content == after.content:
+            return
         time = datetime.now().strftime('%H:%M:%S')
         embed = disnake.Embed(title=f"{before.author.name} edited a message",
                           description="", color=0xFF0000)
-        embed.add_field(name=before.content, value="Before the edit",
+        embed.add_field(name=before.content, value="Before",
                         inline=True)
-        embed.add_field(name=after.content, value="After the edit",
+        embed.add_field(name=after.content, value="After",
                         inline=True)
         embed.set_footer(text=f'ID: {after.id} • Time: {time}')
         channel = self.bot.get_channel(channelID)

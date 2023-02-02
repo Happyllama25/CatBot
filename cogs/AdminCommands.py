@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv('config.env')
 
-adminrole = int(os.getenv('ADMIN_ROLE_ID'))
+#adminrole = int(os.getenv('ADMIN_ROLE_ID'))
 
-print(adminrole)
+#print(adminrole)
 
 class AdminCommands(commands.Cog):
     def __init__(self, bot):
@@ -28,7 +28,7 @@ class AdminCommands(commands.Cog):
         #     await ctx.send(embed=embed)
         # except Exception as error:
         #     await ctx.send(f'Failed: {error}')
-        await ctx.send('not yet')
+        await ctx.send('not yyyyyyet')
 
 
     @commands.command()
@@ -47,7 +47,7 @@ class AdminCommands(commands.Cog):
 
     #bans a user with a reason 
     @commands.command()
-    @commands.has_role(adminrole)
+#    @commands.has_role(adminrole)
     async def ban (self, ctx, member:disnake.User=None, reason='not having enough skill'):
         if member == None or member == ctx.message.author:
             message = await ctx.send("Specify user")
@@ -65,7 +65,7 @@ class AdminCommands(commands.Cog):
 
     #kicks a user with a reason
     @commands.command()
-    @commands.has_role(adminrole)
+#    @commands.has_role(adminrole)
     async def kick(self, ctx, member:disnake.User=None, reason='not having enough skill'):
         if member == None or member == ctx.message.author:
             message = await ctx.send("Specify user")
@@ -78,7 +78,7 @@ class AdminCommands(commands.Cog):
         await ctx.send(f"{member} has a slightly above average lack of skill")
         
     @commands.command()
-    @commands.has_role(adminrole)
+#    @commands.has_role(adminrole)
     async def unban(self, ctx, member:disnake.User=None, reason='has enough skill'):
         if member == None:
             message = await ctx.send("Specify user ID")

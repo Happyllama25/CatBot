@@ -17,11 +17,10 @@ class ReloadCommands(commands.Cog):
     @commands.is_owner()
     async def all(self, ctx):
         await ctx.send('Reloading all commands...')
-        async def restart():
-            for filename in os.listdir("./cogs"):
-                    if filename.endswith(".py"):
-                        commands.Bot.reload_extension(f"cogs.{filename[:-3]}")
-                
+        for filename in os.listdir("./cogs"):
+            if filename.endswith(".py") == True:
+                commands.Bot.reload_extension(self, name={filename[:-3]})
+        
 
 
     @reload.command(name = 'admin')
@@ -52,7 +51,7 @@ class ReloadCommands(commands.Cog):
     @reload.command(name = 'uptime')
     async def uptime(self, ctx):
         await ctx.send('Reloading uptime commands...')
-        commands.Bot.reload_extension(name='cogs.Uptime')
+        commands.Bot.reload_extension(self, name='cogs.Uptime')
 
 def setup(bot):
     bot.add_cog(ReloadCommands(bot))

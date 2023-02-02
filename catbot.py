@@ -6,7 +6,7 @@ from disnake.ext import commands, tasks
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-extensions = ['cogs.Fun', 'cogs.CommandEvents', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.SlashCommands', 'cogs.dnd', 'cogs.AdminCommands']
+extensions = ['cogs.Fun', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.ReloadCommands']
 
 watchingStatus = [
     "you in your sleep", 
@@ -38,24 +38,8 @@ async def on_ready():
     await asyncio.sleep(5)
     await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='a laser pointer!'))
 
-# @tasks.loop()
-# async def status_task():
-#     await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='Bot Started!'))
-
-
-# from discord.ext import commands, tasks
-# import asyncio
-
-# # Your code here
-
-# @tasks.loop(seconds=600)
-# async def status_change():
-#     statusNum = random.randint(0, 10)
-#     await bot.change_presence(status=disnake.Status.online, activity=disnake.Activity(type=disnake.ActivityType.watching, name=watchingStatus[statusNum]))
-
-
-
-
+@tasks.status()
+async test = 'yes'
 
 @bot.listen("on_message")
 async def on_message(message):
@@ -71,8 +55,6 @@ async def on_message(message):
         await message.channel.send('https://tenor.com/view/shut-up-shut-up-normie-normie-dance-gif-16989611')
     if 'smart pistol' in message.content:
         await message.channel.send(f'smart pistol gay-o-meter:\n🟢🟢🟡🟡🔴🔴\n100% - very gay')
-    if 'dont care' in message.content or "don't care" in message.content or 'didnt ask' in message.content or "didn't ask" in message.content:
-        await message.channel.send('https://cdn.discordapp.com/attachments/858603126192865290/958521744128344104/catbotwiththesave.mov?size=4096')
     if 'fuck me' in message.content:
         await message.channel.send('ok 😎')
     if 'bad catbot' in message.content:
@@ -81,7 +63,7 @@ async def on_message(message):
 
 
 for ext in extensions:
-  bot.load_extension(ext)
+    bot.load_extension(ext)
 
 
 try: 
