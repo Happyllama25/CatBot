@@ -5,8 +5,9 @@ import disnake
 from disnake.ext import commands
 
 
-TOKEN = os.getenv('DISCORD_TOKEN')
+TOKEN = os.getenv('DIS_TOKEN')
 extensions = ['cogs.Gpt', 'cogs.Fun', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.ReloadCommands']
+
 
 watchingStatus = [
     "you in your sleep",
@@ -102,4 +103,6 @@ try:
     bot.run(TOKEN)
 
 except Exception as error:
+    #print(type(TOKEN))
+    #print(TOKEN)
     print(f'Failed to start. \n\nInfo: {error}')
