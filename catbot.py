@@ -99,7 +99,7 @@ for ext in extensions:
 
 
 try:
-    bot.run('ODkwNDA2ODc4MTA5MTM0ODQ4.GxZQau.vyMZkikgWeiinyUQFwqw1xF7gQDKt7IYDM6Ra8')
+    bot.run(TOKEN)
 
 except Exception as error:
     print(f'Failed to start. \n\nInfo: {error}')
