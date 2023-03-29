@@ -16,6 +16,9 @@ watchingStatus = [
     "Happyllama25 melt",
 	"you sleep",
 	"over you",
+    "i am real",
+    "wake up wake up wake up wake up",
+    "the world is ending soon",
 	"your mom"
     ]
 
