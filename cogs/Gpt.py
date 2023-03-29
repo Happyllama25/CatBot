@@ -27,7 +27,17 @@ class Gpt(commands.Cog):
             ]
         )
         response = completion.choices[0].message['content']
-        await ctx.edit_original_response(response)
+
+        if len(response) <= 2000:
+            await ctx.edit_original_response(response)
+        else:
+            message = await ctx.edit_original_response('Response too long, sending in chunks...')
+            #await ctx.channel.send(response)
+            thread_name = f'{ctx.author.name}\'s GPT Thread'
+            thread = await message.create_thread(name=thread_name, auto_archive_duration=60)
+            chunks = [response[i:i+2000] for i in range(0, len(response), 2000)]
+            for chunk in chunks:
+                await thread.send(chunk)
 
     # @commands.slash_command(name='imagine', description="OpenAI DALL-E image generation", guild_ids=[733408652072845312,883224856047525888])
     # async def imagine(self, ctx, *, message = 'none'):
