@@ -1,9 +1,7 @@
 import openai
 import disnake
-import json
-import asyncio
 from disnake.ext import commands
-import os
+import os, requests
 from dotenv import load_dotenv
 load_dotenv('.env')
 openai.organization = "org-AyvZFGJwqixw5tj5lgq4XHE3"
@@ -72,19 +70,34 @@ class Gpt(commands.Cog):
         #     for chunk in chunks:
         #         await thread.send(chunk)
 
-    # @commands.slash_command(name='imagine', description="OpenAI DALL-E image generation", guild_ids=[733408652072845312,883224856047525888])
-    # async def imagine(self, ctx, *, message = 'none'):
-    #     await ctx.response.defer(ephemeral=False)
-    #     completion = openai.Image.create(
-    #         prompt=message,
-    #         n=1,
-    #         size='256x256'
-    #     )
-    #     #message typing animation
-    #     response = completion.choices[0].message['content']
-    #     #sleep for 10 seconds
-    #     await asyncio.sleep(10)
-    #     await ctx.edit_original_response(response)
+    @commands.slash_command(name='imagine', description="OpenAI DALL-E image generation", guild_ids=[733408652072845312,883224856047525888])
+    async def imagine(self, ctx, *, prompt = 'A cat sitting on a table'):
+        await ctx.response.defer(ephemeral=False)
+        response = openai.Image.create(
+        prompt=prompt,
+        n=1,
+        size="512x512",
+        )
+        image_url = response['data'][0]['url'] # type: ignore
+
+        # Create the "generated images" directory if it doesn't exist
+        if not os.path.exists("generated-images"):
+            os.makedirs("generated-images")
+
+        # Download the image and save it to disk
+        try:
+            image_data = requests.get(image_url, timeout=45).content
+        except requests.Timeout:
+            await ctx.edit_original_response(content="The image download took too long. This may be because of OpenAI's rate limits. Please try again later.")
+            return
+
+        image_filename = f"{ctx.author.name}_{prompt}.png"
+        image_path = os.path.join("generated images", image_filename)
+        with open(image_path, 'wb') as f:
+            f.write(image_data)
+
+        # Send the image as an attachment
+        await ctx.edit_original_response(file=disnake.File(image_path, description=f"Prompt: {prompt}"))
 
     @commands.command()
     async def gpt(self, ctx, *, message='Hello!'):
