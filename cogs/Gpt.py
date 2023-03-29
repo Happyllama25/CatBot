@@ -92,7 +92,7 @@ class Gpt(commands.Cog):
             return
 
         image_filename = f"{ctx.author.name}_{prompt}.png"
-        image_path = os.path.join("generated images", image_filename)
+        image_path = os.path.join("generated-images", image_filename)
         with open(image_path, 'wb') as f:
             f.write(image_data)
 
