@@ -1,6 +1,4 @@
-import os
-import subprocess
-import sys
+
 import aiohttp, disnake, asyncio
 from disnake.ext import commands
 
@@ -12,11 +10,16 @@ class Fun(commands.Cog):
     async def on_ready(self):
         print(f'{self} has been loaded')
 
-        
     @commands.command(name = "say")
+    @commands.is_owner()
     async def say(self, ctx, *, message = 'CatBot is the best'):
         await ctx.message.delete()
         await ctx.send(message)
+    
+    @say.error
+    async def say_error(ctx,error):
+        if isinstance(error, commands.NotOwner):
+            await ctx.send("nah")
         
     @commands.command(name='catfact', help='Sends a random CatFact.')
     async def catfact(self, ctx, n = 1):
@@ -60,8 +63,6 @@ class Fun(commands.Cog):
             async with session.get("https://insult.mattbas.org/api/") as response:
                 insult = await response.txt()
 
-            
-
     @commands.command(name='bricc', help='bricc')
     async def bricc(self, ctx, n = 1):
         for i in range(n):
@@ -77,9 +78,7 @@ class Fun(commands.Cog):
     async def remind(self, ctx, time, *, task):
         def convert(time):
             pos = ['s', 'm', 'h', 'd']
-
             time_dict = {"s": 1, "m": 60, "h": 3600, "d": 3600*24}
-
             unit = time[-1]
 
             if unit not in pos:
@@ -88,21 +87,16 @@ class Fun(commands.Cog):
                 val = int(time[:-1])
             except:
                 return -2
- 
             return val * time_dict[unit]
-
         converted_time = convert(time)
-
         if converted_time == -1:
             await ctx.send("The time is incorrect")
             return
-        
         if converted_time == -2:
             await ctx.send("Time must be an integer (numbers dum dum)")
             return
         
         await ctx.send(f"Started reminder for **{task}** and will remind in **{time}**.")
-
         await asyncio.sleep(converted_time)
         await ctx.send(f"{ctx.author.mention} your reminder for **{task}** has finished!")
 
@@ -119,12 +113,24 @@ class Fun(commands.Cog):
     @commands.command()
     async def changepres(self, ctx, type, *, message):
         if type and message == None or type != 'watching' or 'listening' or 'streaming':
-            await ctx.message.send(f"Possible types are: watching, streaming and listening")
+            await ctx.message.send("Possible types are: watching, streaming and listening")
             return
         typeFull = f'disnake.Activity.{type}'
         await self.bot.change_presence(activity=disnake.Activity(type=typeFull, name=message))
         await ctx.message.send(f'Activity changed to `{type} {message}`')
 
+    @commands.slash_command(name = 'xkcd', description = 'Daily comics from xkcd')
+    async def xkcd(self, ctx):
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://xkcd.com/info.0.json") as response:
+                comic = (await response.json())["img"]
+                title = (await response.json())["title"]
+                alt = (await response.json())["alt"]
+                number = (await response.json())["num"]
+                embed = disnake.Embed(title=title, colour=0x400080)
+                embed.set_image(url = comic)
+                embed.set_footer(text=f'{alt} - #{number}')
+                await ctx.response.send_message(embed=embed)
 
 def setup(bot):
     bot.add_cog(Fun(bot))

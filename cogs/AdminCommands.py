@@ -46,14 +46,9 @@ class AdminCommands(commands.Cog):
       
 
     #bans a user with a reason 
-    @commands.command()
-#    @commands.has_role(adminrole)
-    async def ban (self, ctx, member:disnake.User=None, reason='not having enough skill'):
-        if member == None or member == ctx.message.author:
-            message = await ctx.send("Specify user")
-            await message.delete(delay=3)
-            await ctx.message.delete(delay=3)
-            return
+    @commands.slash_command()
+    @commands.has_permissions(ban_members=True)
+    async def ban(self, ctx, member:disnake.User, reason:str = 'not having enough skill'):
         try:
             message = f"ur banned from {ctx.guild.name} for {reason}\n\nlol fkin noob"
             await member.send(message)
@@ -61,6 +56,30 @@ class AdminCommands(commands.Cog):
             await ctx.send(f"{member} has a severe lack of skill")
         except Exception as error:
             await ctx.send(f'Error:\n{error}')
+    
+    @commands.slash_command()
+    @commands.is_owner()
+    async def ban_role(self, ctx, role: disnake.Role, *, reason: str = None):
+        ctx.response.defer()
+        try:
+            members = role.members
+            if len(members) == 0:
+                return await ctx.edit_original_response("Role has no members.")
+            for member in members:
+                if reason == None:
+                    await member.ban(reason=f"Banned by {ctx.author.name}")
+                await member.ban(reason=reason)
+            await ctx.response.send_message(f"{len(members)} member(s) from {role.mention} have been banned.")
+        except Exception as e:
+            if e.code == 50013:
+                return await ctx.response.send_message("Missing permissions to ban members. (Is the role above the bot role?)")
+            await ctx.response.send_message("An error occurred while trying to ban members and has been printed to the log.")
+            print(e)
+
+    # @cog_ext.cog_slash()
+    # async def error(self, ctx):
+    #     await ctx.send("An error occurred while processing this command.")
+
 
 
     #kicks a user with a reason
@@ -101,7 +120,6 @@ class AdminCommands(commands.Cog):
         else:
             await ctx.channel.purge(limit = amount)
         #Add limit to prevent too many deletes - done
-    
 
 def setup(bot):
     bot.add_cog(AdminCommands(bot))
