@@ -8,10 +8,6 @@ load_dotenv('.env')
 openai.organization = "org-AyvZFGJwqixw5tj5lgq4XHE3"
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# class prompts(str):
-#     Default = 'You are a Discord Chatbot called Catbot. You are helpful and always give an answer to a users question.'
-#     UwU =
-
 
 class Gpt(commands.Cog):
 
@@ -29,7 +25,7 @@ class Gpt(commands.Cog):
         response = completion.choices[0].message['content']
         # If the response is too long, send in multiple pieces, otherwise send it all in one message
         if len(response) <= 2000:
-            await ctx.edit_original_response(f"{response} \*w\*")
+            await ctx.edit_original_response(response)
         else:
             try:  # Try to create a new thread, if the thread is already created and command was called from inside the thread, send it normally
                 if isinstance(ctx.channel, disnake.Thread):
@@ -62,11 +58,7 @@ class Gpt(commands.Cog):
                     await ctx.edit_original_response('Oops! Something went wrong! Please try again. (this is extremely unlikely to happen, if you are anthony please **K**eep **Y**ourself **S**afe)')
 
     @commands.slash_command(name='imagine', description="OpenAI DALL-E image generation")
-    async def imagine(self, ctx,
-                      prompt: str,
-                      check: bool = commands.Param(
-                          name="check", description="Check if the prompt passes OpenAI's threshold", default=False)
-                      ):
+    async def imagine(self, ctx, prompt: str):
         await ctx.response.defer(ephemeral=False)
 
         try:
@@ -94,13 +86,16 @@ class Gpt(commands.Cog):
         # Create the "generated images" directory if it doesn't exist
         if not os.path.exists("generated-images"):
             os.makedirs("generated-images")
-
+        
         # Download the image and save it to disk
-        image_data = requests.get(image_url, timeout=45).content
+        image_data = requests.get(image_url, timeout=20).content
         image_filename = f"{ctx.author.name}_{prompt}.png"
-        image_path = os.path.join("generated-images", image_filename)
-        with open(image_path, 'wb') as f:
-            f.write(image_data)
+        image_path = os.path.join("generated-images", image_filename[:35])
+        try:
+            with open(image_path, 'wb') as f:
+                f.write(image_data)
+        except OSError:
+            return await ctx.edit_original_response(content=f"An error occurred while saving the image. This will expire in 2 hours. (you should save it)\n{image_url}")
 
         # Send the image as an attachment
         await ctx.edit_original_response(file=disnake.File(image_path, description=f"Prompt: {prompt}"))
