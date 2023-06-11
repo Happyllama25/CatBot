@@ -6,7 +6,7 @@ from disnake.ext import commands
 
 
 TOKEN = os.getenv('DIS_TOKEN')
-extensions = ['cogs.Gpt', 'cogs.Fun', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.ReloadCommands']
+extensions = ['cogs.Speech','cogs.Music', 'cogs.Gpt', 'cogs.Fun', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.ReloadCommands', 'cogs.Ytdownload']
 
 
 watchingStatus = [

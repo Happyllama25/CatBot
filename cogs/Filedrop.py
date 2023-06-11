@@ -1,6 +1,5 @@
 import disnake
 from disnake.ext import commands
-guilds = [733408652072845312, 883224856047525888]
 
 
 class Filedrop(commands.Cog):
@@ -10,8 +9,7 @@ class Filedrop(commands.Cog):
 
 
     @commands.slash_command(name='filedrop',
-                            description='Saves sent attachments to a shared folder',
-                            guild_ids=guilds)
+                            description='Saves sent attachments to a shared folder')
     async def filedrop(self, inter, file: disnake.Attachment, name: str = commands.Param(max_length=10, default='file')):
         try:
             filename = f'./files/{file.filename}'

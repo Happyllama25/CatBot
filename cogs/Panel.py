@@ -55,7 +55,7 @@ class Panel(commands.Cog):
         #     await ctx.send("Please provide the identifier")
         if ident == '4529cae6' and ctx.author != self.bot.owner:
             return await ctx.send('lol no')
-        message = await ctx.send("Querying node...")
+        await ctx.send("Querying node...")
         #Query for resources API (status, uptime, memory usage, etc)
         url = f'https://panel.happyllama25.net/api/client/servers/{ident}/resources'
         headers = {
@@ -71,7 +71,7 @@ class Panel(commands.Cog):
         cpu_usage = round(cpu_raw, 2)
         memory = round(memory_unmathed / 1000000000, 2)
 
-        await message.edit(content="Querying panel...")
+        await ctx.edit_original_response(content="Querying panel...")
 
         #Query for name, allocation, port
         url_name = f'https://panel.happyllama25.net/api/client/servers/{ident}'
@@ -101,13 +101,13 @@ class Panel(commands.Cog):
             embed.add_field(name="CPU Usage", value=f'{str(cpu_usage)}%', inline=False)
             embed.add_field(name="IP:PORT", value=f'{allocation}:{str(port)}', inline=False)
             embed.set_footer(text=f"{str(ctx.author)} ⚫ response time: {str(time)}")
-            await message.edit(content=None, embed=embed)
+            await ctx.edit_original_response(content=None, embed=embed)
             # ADD REACTIONS TO START STOP AND RESTART
 
             list_of_emojis = ['🔴','🟡']
 
             for emoji in list_of_emojis:
-                await message.add_reaction(emoji)
+                await ctx.add_reaction(emoji)
 
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in list_of_emojis
@@ -117,7 +117,7 @@ class Panel(commands.Cog):
                 print(reaction)
             except asyncio.TimeoutError:
                 print('timed out')
-                return await message.add_reaction('⌛️')
+                return await ctx.add_reaction('⌛️')
 
 
             if str(reaction.emoji) == "🟡":
@@ -166,13 +166,13 @@ class Panel(commands.Cog):
             embed.add_field(name="Name", value=name, inline=True)
             embed.add_field(name="Status", value=f'{server_status.capitalize()}    🔴', inline=True)
             embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}')
-            await message.edit(content=None, embed=embed)
+            await ctx.edit_original_response(content=None, embed=embed)
             # ADD REACTIONS TO START STOP AND RESTART
 
             list_of_emojis = ['🟢']
 
             for emoji in list_of_emojis:
-                await message.add_reaction(emoji)
+                await ctx.add_reaction(emoji)
 
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in list_of_emojis
@@ -182,7 +182,7 @@ class Panel(commands.Cog):
                 print(reaction)
             except asyncio.TimeoutError:
                 print('timed out')
-                return await message.add_reaction('⌛️')
+                return await ctx.add_reaction('⌛️')
 
             if str(reaction.emoji) == "🟢":
                 await ctx.send('Sending start request...')
@@ -214,13 +214,13 @@ class Panel(commands.Cog):
             embed.add_field(name="CPU Usage", value=str(cpu_usage) + '%', inline=True)
             embed.add_field(name="IP:PORT", value=allocation + ':' + str(port), inline=True)
             embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
-            await message.edit(content=None, embed=embed)
+            await ctx.edit_original_response(content=None, embed=embed)
             # ADD REACTIONS TO START STOP AND RESTART
 
             list_of_emojis = ['🔴','🟡']
 
             for emoji in list_of_emojis:
-                await message.add_reaction(emoji)
+                await ctx.add_reaction(emoji)
 
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in list_of_emojis
@@ -230,7 +230,7 @@ class Panel(commands.Cog):
                 print(reaction)
             except asyncio.TimeoutError:
                 print('timed out')
-                return message.add_reaction('⌛️')
+                return ctx.add_reaction('⌛️')
 
 
             if str(reaction.emoji) == "🟡":
@@ -282,7 +282,7 @@ class Panel(commands.Cog):
             embed.add_field(name="Icon", value="🟡", inline=True) # Emoji line
             embed.add_field(name="Memory Usage", value=str(memory) + ' GB', inline=False)
             embed.add_field(name="CPU Usage", value=str(cpu_usage) + '%', inline=True)
-            embed.add_field(name="IP:PORT", value=allocation + ':' + str(port), inline=True)
+            embed.add_field(name="IP:PORT", value=f"{allocation}:{str(port)}", inline=True)
             embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
             await ctx.send(embed=embed)
             await ctx.send('Something unexpected happened')
