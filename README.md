@@ -6,3 +6,6 @@ My goal was to ultimately get more people into joining the server and interactin
 I started writing it in Python 3.9 and discord.py 1.7.3 but then migrated to Disnake 2.4.0
 
 I then further developed this project to perform an API request to a [Pterodactyl Panel](https://pterodactyl.io/) to start and stop servers/programs remotely through Discord.
+
+
+and now i just mess about with it when i have the time
