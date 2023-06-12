@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 TOKEN = os.getenv('DIS_TOKEN')
-extensions = ['cogs.Speech','cogs.Music', 'cogs.Gpt', 'cogs.Fun', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.ReloadCommands', 'cogs.Ytdownload']
+extensions = ['cogs.Speech','cogs.Gpt', 'cogs.Fun', 'cogs.Uptime', 'cogs.Feet', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.ReloadCommands', 'cogs.Ytdownload']
 
 
 watchingStatus = [
