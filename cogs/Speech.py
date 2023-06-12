@@ -27,6 +27,7 @@ class TTS(commands.Cog):
         if voice_channel is None:
             await inter.edit_original_response("You are not connected to any voice channel. Stopping.")
             return
+        voice_channel = inter.author.voice.channel
         print(f'user is in voice channel {voice_channel.name}')
         try:
             print(f"Connecting to voice channel: {voice_channel.name}")
@@ -46,14 +47,6 @@ class TTS(commands.Cog):
         print(f"Speech synthesis result: {result.reason}")
 
         if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-            # Save synthesized audio to a WAV file
-            stream = speechsdk.AudioDataStream(result)
-            audio_file = f"{inter.author}_output.wav"
-            stream.save_to_wav_file(audio_file)
-
-            # Play the audio file
-            vc.play(disnake.FFmpegPCMAudio(executable="ffmpeg", source=audio_file))
-
             # convert mp3 file to wav as disnake's voice client uses ffmpeg to play audio, which requires the file to be in .wav format
             # stream = speechsdk.AudioDataStream(result)
             # audio_file = "output.mp3"
