@@ -27,15 +27,28 @@ class TTS(commands.Cog):
         if voice_channel is None:
             await inter.edit_original_response("You are not connected to any voice channel. Stopping.")
             return
-        voice_channel = inter.author.voice.channel
-        print(f'user is in voice channel {voice_channel.name}')
-        try:
-            print(f"Connecting to voice channel: {voice_channel.name}")
-            vc = await voice_channel.connect()
-            print(f"Connected to voice channel: {voice_channel.name}")
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
 
+        print(f'user is in voice channel {voice_channel.name}')
+
+        # Check if bot is already in a voice channel
+        for vc in self.bot.voice_clients:
+            if vc.guild == inter.guild:
+                if vc.channel == voice_channel:
+                    print(f"Already connected to voice channel: {voice_channel.name}")
+                else:
+                    await vc.move_to(voice_channel)
+                    print(f"Moved to voice channel: {voice_channel.name}")
+                break
+        else:  # Bot is not connected to any voice channel in the server
+            try:
+                print(f"Connecting to voice channel: {voice_channel.name}")
+                vc = await voice_channel.connect()
+                print(f"Connected to voice channel: {voice_channel.name}")
+            except Exception as e:
+                print(f"An error occurred: {str(e)}")
+                return
+
+        print(f"Connected to voice channel: {voice_channel.name}")
         print(f"Setting voice to: {voice}")
         self.speech_config.speech_synthesis_voice_name = voice
         print(f"Voice set to: {voice}")
@@ -48,10 +61,10 @@ class TTS(commands.Cog):
 
         if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             # convert mp3 file to wav as disnake's voice client uses ffmpeg to play audio, which requires the file to be in .wav format
-            # stream = speechsdk.AudioDataStream(result)
-            # audio_file = "output.mp3"
-            # stream.save_to_file(audio_file)
-            # vc.play(disnake.FFmpegPCMAudio(source=audio_file)) # type: ignore
+            stream = speechsdk.AudioDataStream(result)
+            audio_file = "output.mp3"
+            stream.save_to_wav_file(audio_file)
+            vc.play(disnake.FFmpegPCMAudio(source=audio_file))
             await inter.edit_original_response("Speaking...")
             while vc.is_playing():
                 continue
