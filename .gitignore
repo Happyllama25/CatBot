@@ -4,3 +4,5 @@ cogs/__pycache__/
 test.*
 .vscode/
 feet/
+.devcontainer/
+__pycache__/
