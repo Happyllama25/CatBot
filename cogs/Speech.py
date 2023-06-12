@@ -21,10 +21,11 @@ class TTS(commands.Cog):
     @commands.slash_command(description="Join a voice channel and speak the text")
     async def speak(self, inter, voice:Voices, text: str):
         await inter.response.defer(ephemeral=False)
-        voice_channel = inter.author.voice.channel
+        voice_channel = inter.author.voice
         if voice_channel is None:
-            await inter.response.send_message("You are not connected to any voice channel.")
+            await inter.edit_original_response("You are not connected to any voice channel.")
             return
+        voice_channel = inter.author.voice.channel
         print(f'user is in voice channel {voice_channel.name}')
         try:
             print(f"Connecting to voice channel: {voice_channel.name}")
@@ -38,30 +39,30 @@ class TTS(commands.Cog):
         print(f"Voice set to: {voice}")
         print(f"Synthesizing audio for text: {text}")
         # TTS with Azure
-        audio_file = "audio.mp3"
-        audio_output = speechsdk.AudioOutputConfig(filename=audio_file)
-        speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=self.speech_config, audio_config=audio_output)
+        speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=self.speech_config, audio_config=None)
         result = speech_synthesizer.speak_text_async(text).get()
         print(f"Speech synthesis result: {result.reason}")
         if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             # convert mp3 file to wav as disnake's voice client uses ffmpeg to play audio, which requires the file to be in .wav format
-            sound = AudioSegment.from_mp3(audio_file)
-            sound.export("audio.wav", format="wav")
-            vc.play(disnake.FFmpegPCMAudio(executable="ffmpeg", source="audio.wav"))
+            stream = speechsdk.AudioDataStream(result)
+            audio_file = "output.wav"
+            stream.save_to_wav_file(audio_file)
+            vc.play(disnake.FFmpegPCMAudio(source=audio_file))
+            inter.edit_original_response("Speaking...")
             while vc.is_playing():
                 continue
             await vc.disconnect()
+            inter.edit_original_response("Done speaking.")
 
             # send the audio file if it's less than 25MB
             file_size = os.path.getsize(audio_file) / (1024 * 1024)  # get file size in MB
             if file_size <= 25:
                 with open(audio_file, 'rb') as f:
-                    await inter.response.send_message("Here is the synthesized audio:", file=disnake.File(f, "audio.mp3"))
+                    await inter.edit_original_response("Here is the audio file", file=disnake.File(f, filename="output.wav"))
             else:
-                await inter.response.send_message("The synthesized audio file is too large to upload.")
+                await inter.edit_original_response("The synthesized audio file is too large to upload.")
 
             os.remove(audio_file)
-            os.remove("audio.wav")
         elif result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = result.cancellation_details
             print("Speech synthesis canceled: {}".format(cancellation_details.reason))
