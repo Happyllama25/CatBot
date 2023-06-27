@@ -1,4 +1,6 @@
 import disnake
+import time
+import socket
 import requests
 from disnake.ext import commands
 
@@ -17,13 +19,13 @@ class Titanfall(commands.Cog):
             response = requests.get(url, timeout=5)
             response.raise_for_status()
             data = response.json()
-        except requests.exceptions.RequestException as e:
-            await ctx.send(f"An error occurred while fetching server data: {str(e)}")
+        except requests.exceptions.RequestException as error:
+            await ctx.send(f"An error occurred while fetching server data: {str(error)}")
             return
-        except ValueError as e:
-            await ctx.send(f"An error occurred while processing server data: {str(e)}")
+        except ValueError as error:
+            await ctx.send(f"An error occurred while processing server data: {str(error)}")
             return
-        
+
         servers = data
         server_count = len(data)
 
@@ -31,7 +33,7 @@ class Titanfall(commands.Cog):
         priority_index = None
         for index, server in enumerate(servers):
             if "happyllama25" in server["name"].lower():
-                priority_server = server
+                priority_server += server
                 priority_index = index
 
         message = f"```diff\n+ {server_count} servers were found - displaying first 5 results\n\n"
@@ -62,6 +64,9 @@ class Titanfall(commands.Cog):
         message += f"\n+Global total Players: {total_players}"
 
         await ctx.edit_original_response(f"{message}```")
+
+
+
 
 def setup(bot):
     bot.add_cog(Titanfall(bot))
