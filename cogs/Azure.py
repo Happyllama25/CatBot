@@ -72,6 +72,7 @@ class azure(commands.Cog):
             message += f"-Error reason: {error_details.reason}\n"
             message += f"-Error code: {error_details.error_code}\n"
             message += f"-Error message: {error_details.message}\n```"
+            await inter.edit_original_response(message)
 
     async def autocomp_voices(inter: disnake.ApplicationCommandInteraction, user_input: str): #type: ignore
         return [v for v in voices if user_input.lower() in v]
