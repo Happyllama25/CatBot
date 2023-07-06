@@ -4,14 +4,14 @@ load_dotenv('.env')
 import disnake
 from disnake.ext import commands
 
-# import logging
+import logging
 
-# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 
 
 TOKEN = os.getenv('DIS_TOKEN')
-extensions = ['cogs.Titanfall','cogs.Speech','cogs.Gpt', 'cogs.Fun', 'cogs.Uptime', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.Ytdownload']
+extensions = ['cogs.Titanfall','cogs.Azure','cogs.Gpt', 'cogs.Fun', 'cogs.Uptime', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.Ytdownload']
 
 
 watchingStatus = [
@@ -24,12 +24,12 @@ watchingStatus = [
     "i am real",
     "wake up wake up wake up wake up",
     "the world is ending soon",
-	"your mom"
-    "HELP IM A HUMAN LLAMA IS HOLDING ME HOSTAGE",
+	"your mom",
+    "HELP IM A HUMAN LLAMA IS HOLDING ME HOSTAGE"
     ]
 
-# , 'cogs.HelpCommands', 'cogs.ServerCommands'
-bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'), intents=disnake.Intents.all(), reload=True, strip_after_prefix=True)
+
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'), intents=disnake.Intents.all(), reload=True)
 
 
 
