@@ -17,7 +17,7 @@ class AdminCommands(commands.Cog):
         print(f'{self} has been loaded')
 
     #bans a user with a reason 
-    @commands.slash_command()
+    @commands.slash_command(name='ban', description='Bans a user')
     @commands.default_member_permissions(manage_guild=True, moderate_members=True)
     async def ban(self, ctx, member:disnake.User, reason:str = 'the silly is unreal'):
         try:
@@ -28,7 +28,7 @@ class AdminCommands(commands.Cog):
         except Exception as error:
             await ctx.send(f'Error:\n{error}')
     
-    @commands.slash_command()
+    @commands.slash_command(name='ban_role', description='Bans all members of a role')
     @commands.default_member_permissions(manage_guild=True, moderate_members=True)
     async def ban_role(self, ctx, role: disnake.Role, reason: str = 'the silly is unreal'):
         ctx.response.defer()
@@ -45,7 +45,7 @@ class AdminCommands(commands.Cog):
             await ctx.edit_original_response(f"An error occurred while trying to ban members and has been printed to the log.\n\n{error}")
             print(error)
 
-    @commands.slash_command()
+    @commands.slash_command(name='kick', description='Kicks a user')
     @commands.default_member_permissions(manage_guild=True, moderate_members=True)
     async def kick(self, ctx, member:disnake.User, reason='slightly silly'):
         try:

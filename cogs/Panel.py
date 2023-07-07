@@ -12,13 +12,9 @@ class Panel(commands.Cog):
     def __init__(self, bot:commands.Bot):
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print(f'{self} Panel has loaded mr furry')
-
-    @commands.command(name = "servers")
+    @commands.slash_command(name = "servers", description="Lists all available servers")
     async def servers(self, ctx):
-        message = await ctx.send('Requesting data...')
+        await ctx.send('Requesting data...')
 
         url = 'https://panel.happyllama25.net/api/client'
         headers = {
@@ -45,19 +41,17 @@ class Panel(commands.Cog):
         embed.add_field(name="Name", value='\n'.join(server_names), inline=True)
         embed.add_field(name="Identifier", value='\n'.join(server_identifiers), inline=True)
         embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
-        await message.edit(content=None, embed=embed)
+        await ctx.edit_original_response(content=None, embed=embed)
         server_names.clear()
         server_identifiers.clear()
 
-    @commands.slash_command(name = "stats", aliases=['stat', 's'])
-    async def stats(self, ctx, ident):
-        # if ident == 'yipeeee':
-        #     await ctx.send("Please provide the identifier")
-        if ident == '4529cae6' and ctx.author != self.bot.owner:
+    @commands.slash_command(name = "status", description="Status for server ID (Used with /servers)")
+    async def status(self, ctx, identifier:str):
+        if identifier == '4529cae6' and ctx.author != self.bot.owner:
             return await ctx.send('lol no')
         await ctx.send("Querying node...")
         #Query for resources API (status, uptime, memory usage, etc)
-        url = f'https://panel.happyllama25.net/api/client/servers/{ident}/resources'
+        url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/resources'
         headers = {
             "Authorization": f"Bearer {API_KEY}",
             "Accept": "application/json"
@@ -74,7 +68,7 @@ class Panel(commands.Cog):
         await ctx.edit_original_response(content="Querying panel...")
 
         #Query for name, allocation, port
-        url_name = f'https://panel.happyllama25.net/api/client/servers/{ident}'
+        url_name = f'https://panel.happyllama25.net/api/client/servers/{identifier}'
         dataname = requests.get(url_name, headers=headers, timeout=10)
         name = dataname.json()['attributes']['name']
 
@@ -101,13 +95,13 @@ class Panel(commands.Cog):
             embed.add_field(name="CPU Usage", value=f'{str(cpu_usage)}%', inline=False)
             embed.add_field(name="IP:PORT", value=f'{allocation}:{str(port)}', inline=False)
             embed.set_footer(text=f"{str(ctx.author)} ⚫ response time: {str(time)}")
-            await ctx.edit_original_response(content=None, embed=embed)
+            message = await ctx.edit_original_response(content=None, embed=embed)
             # ADD REACTIONS TO START STOP AND RESTART
 
             list_of_emojis = ['🔴','🟡']
 
             for emoji in list_of_emojis:
-                await ctx.add_reaction(emoji)
+                await message.add_reaction(emoji)
 
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in list_of_emojis
@@ -117,13 +111,13 @@ class Panel(commands.Cog):
                 print(reaction)
             except asyncio.TimeoutError:
                 print('timed out')
-                return await ctx.add_reaction('⌛️')
+                return await message.add_reaction('⌛️')
 
 
             if str(reaction.emoji) == "🟡":
                 print('yellow')
-                await ctx.send('Sending restart request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
+                message = await ctx.followup.send('Sending restart request...')
+                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {API_KEY}",
                     "Accept": "application/json"
@@ -131,16 +125,15 @@ class Panel(commands.Cog):
                 payload = {'signal': 'restart'}
                 response = requests.post(url, headers=headers, data=payload, timeout=10)
                 if response.status_code == 204:
-                    await ctx.send('Request approved')
+                    await message.edit('Request approved')
                 else:
-                    embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
-
+                    await message.edit(content=f'{response.status_code} - Request rejected: {response}')
                 return
 
             if str(reaction.emoji) == "🔴":
                 print('red')
-                message = await ctx.send('Sending stop request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
+                message = await ctx.followup.send('Sending stop request...')
+                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {API_KEY}",
                     "Accept": "application/json"
@@ -150,7 +143,7 @@ class Panel(commands.Cog):
                 if response.status_code == 204:
                     await message.edit('Request approved')
                 else:
-                    embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
+                    await message.edit(content=f'{response.status_code} - Request rejected: {response}')
                 return
 
             else:
@@ -166,13 +159,13 @@ class Panel(commands.Cog):
             embed.add_field(name="Name", value=name, inline=True)
             embed.add_field(name="Status", value=f'{server_status.capitalize()}    🔴', inline=True)
             embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}')
-            await ctx.edit_original_response(content=None, embed=embed)
+            message = await ctx.followup.send(content=None, embed=embed)
             # ADD REACTIONS TO START STOP AND RESTART
 
             list_of_emojis = ['🟢']
 
             for emoji in list_of_emojis:
-                await ctx.add_reaction(emoji)
+                await message.add_reaction(emoji)
 
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in list_of_emojis
@@ -182,11 +175,11 @@ class Panel(commands.Cog):
                 print(reaction)
             except asyncio.TimeoutError:
                 print('timed out')
-                return await ctx.add_reaction('⌛️')
+                return await message.add_reaction('⌛️')
 
             if str(reaction.emoji) == "🟢":
-                await ctx.send('Sending start request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
+                message = await ctx.followup.send('Sending start request...')
+                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {API_KEY}",
                     "Accept": "application/json"
@@ -194,9 +187,9 @@ class Panel(commands.Cog):
                 payload = {'signal': 'start'}
                 response = requests.post(url, headers=headers, data=payload, timeout=10)
                 if response.status_code == 204:
-                    await ctx.send('Request approved')
+                    await message.edit('Request approved')
                 else:
-                    embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
+                    await message.edit(content=f'{response.status_code} - Request rejected: {response}')
                 return
 
             else:
@@ -206,7 +199,6 @@ class Panel(commands.Cog):
 
 
         elif server_status == "starting":
-            await ctx.send('starting')
             embed=disnake.Embed(title="Server Status", color=0xe7ca18)
             embed.add_field(name="Name", value=name, inline=True)
             embed.add_field(name="Status", value=f'{server_status.capitalize()}    🟡', inline=True)
@@ -214,13 +206,13 @@ class Panel(commands.Cog):
             embed.add_field(name="CPU Usage", value=str(cpu_usage) + '%', inline=True)
             embed.add_field(name="IP:PORT", value=allocation + ':' + str(port), inline=True)
             embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
-            await ctx.edit_original_response(content=None, embed=embed)
+            message = await ctx.followup.send(content=None, embed=embed)
             # ADD REACTIONS TO START STOP AND RESTART
 
             list_of_emojis = ['🔴','🟡']
 
             for emoji in list_of_emojis:
-                await ctx.add_reaction(emoji)
+                await message.add_reaction(emoji)
 
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in list_of_emojis
@@ -230,13 +222,13 @@ class Panel(commands.Cog):
                 print(reaction)
             except asyncio.TimeoutError:
                 print('timed out')
-                return ctx.add_reaction('⌛️')
+                return message.add_reaction('⌛️')
 
 
             if str(reaction.emoji) == "🟡":
                 print('yellow')
-                message = await ctx.send('Sending restart request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
+                message = await ctx.followup.send('Sending restart request...')
+                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {API_KEY}",
                     "Accept": "application/json"
@@ -251,8 +243,8 @@ class Panel(commands.Cog):
 
             if str(reaction.emoji) == "🔴":
                 print('red')
-                message = await ctx.send('Sending stop request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{ident}/power'
+                message = await ctx.followup.send('Sending stop request...')
+                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {API_KEY}",
                     "Accept": "application/json"
@@ -269,23 +261,10 @@ class Panel(commands.Cog):
                 print('something shitty happened')
                 await ctx.send('if you can read this, something fucked up somewhere and i have no idea why (try running the command again)')
 
-
-
         else:
             await ctx.send('HTTPS Status Code: ' + statuscode)
             await ctx.send('Response time for resource request:' + str(timeresource))
             await ctx.send('Response time for name request:' + str(timename))
-            embed=disnake.Embed(title="Response from the API", color=0xaa33cc)
-            embed.set_author(name=statuscode)
-            embed.add_field(name="Name", value=name, inline=True)
-            embed.add_field(name="Status", value=server_status.capitalize(), inline=True)
-            embed.add_field(name="Icon", value="🟡", inline=True) # Emoji line
-            embed.add_field(name="Memory Usage", value=str(memory) + ' GB', inline=False)
-            embed.add_field(name="CPU Usage", value=str(cpu_usage) + '%', inline=True)
-            embed.add_field(name="IP:PORT", value=f"{allocation}:{str(port)}", inline=True)
-            embed.set_footer(text=f'{str(ctx.author)} ⚫ response time: {str(time)}ms')
-            await ctx.send(embed=embed)
-            await ctx.send('Something unexpected happened')
 
 
 def setup(bot:commands.Bot):
