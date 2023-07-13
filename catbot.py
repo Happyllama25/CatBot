@@ -19,13 +19,17 @@ watchingStatus = [
     "the silly",
     "#gaming",
     "Happyllama25 melt",
+    "Meow :3", 
 	"you sleep",
 	"over you",
+    "you",
     "i am real",
     "wake up wake up wake up wake up",
     "the world is ending soon",
 	"your mom",
-    "HELP IM A HUMAN LLAMA IS HOLDING ME HOSTAGE"
+    "HELP IM A HUMAN LLAMA IS HOLDING ME HOSTAGE",
+    "the world burn",
+    "meow meow meow meow meow meow meow meow meow meow meow meow meow meow meow meow",
     ]
 
 
@@ -41,9 +45,10 @@ async def on_ready():
 
 
 async def status_cycle():
-    for status in watchingStatus:
-        await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name=status))
-        await asyncio.sleep(69)
+    while True:
+        for status in watchingStatus:
+            await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name=status))
+            await asyncio.sleep(69)
 
 
 @bot.listen("on_message")
