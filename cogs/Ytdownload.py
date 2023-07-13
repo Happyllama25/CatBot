@@ -91,8 +91,11 @@ class Ytdownload(commands.Cog):
             if time.time() - last_update >= 1:
                 print("update message")
                 await self.message.edit(content=self.progress)  # Edit the message directly
+                print(time.time() - last_update)
                 last_update = time.time()
-            await asyncio.sleep(1)
+            else:
+                print(f"sleep {time.time() - last_update}")
+                await asyncio.sleep(0.1)
             print("end of iteration")
         print("loop finished")
 
