@@ -74,16 +74,21 @@ class Ytdownload(commands.Cog):
         self.download_in_progress = False
 
     def report_progress(self, ctx, status):
+        print("report_progress")
         if status.get('status') == 'downloading':
+            print("setting message variables")
             filename = self.filename
             percent = status['_percent_str']
             eta = status['_eta_str']
             self.progress = f"Downloading `{filename}`\nProgress: {percent}\nETA: {eta}"
 
     async def send_progress_updates(self):
+        print("send_progress_updates")
         last_update = time.time()
         while self.download_in_progress == True:
+            print("while loop")
             if time.time() - last_update >= 1:
+                print("update message")
                 await self.message.edit(content=self.progress)  # Edit the message directly
                 last_update = time.time()
             await asyncio.sleep(1)
