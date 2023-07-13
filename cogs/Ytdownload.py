@@ -53,8 +53,9 @@ class Ytdownload(commands.Cog):
                 video_title = info_dict.get('title', None)
                 safe_title = re.sub(r'\W+', '_', video_title, flags=re.UNICODE)
                 video_file = f'{safe_title[:24]}.mp4'
+                self.filename = video_file
 
-                self.message = await ctx.edit_original_response(f"Downloading {video_title}")  # Send an initial message and keep its reference                loop = asyncio.get_event_loop()
+                self.message = await ctx.edit_original_response(f"Downloading **{video_title}**")
                 loop = asyncio.get_event_loop()
                 await loop.run_in_executor(self.executor, lambda: ydl.download([url]))
                 os.rename('downloaded_video.mp4', video_file)
@@ -62,7 +63,7 @@ class Ytdownload(commands.Cog):
                     await ctx.edit_original_response(content=f"The video '{video_title}' is too big for discord to handle :( discord is a big meanie\nLEGALIZE NUCLEAR BOMBS >:)")
                     os.remove(video_file)
                 else:
-                    await ctx.edit_original_response(content=f"Downloaded {video_title}! Uploading...")
+                    await ctx.edit_original_response(content=f"Downloaded **{video_title}**! Uploading...")
                     with open(video_file, 'rb') as fp:
                         await ctx.send(file=disnake.File(fp, f'{video_file}'))
                     os.remove(video_file)
@@ -74,17 +75,17 @@ class Ytdownload(commands.Cog):
 
     def report_progress(self, ctx, status):
         if status.get('status') == 'downloading':
-            filename = status['filename']
+            filename = self.filename
             percent = status['_percent_str']
             eta = status['_eta_str']
-            self.progress = f"Downloading {filename}\nProgress: {percent}\nETA: {eta}"
+            self.progress = f"Downloading `{filename}`\nProgress: {percent}\nETA: {eta}"
 
     async def send_progress_updates(self):
         last_update = time.time()
         while self.download_in_progress == True:
             if time.time() - last_update >= 1:
-                last_update = time.time()
                 await self.message.edit(content=self.progress)  # Edit the message directly
+                last_update = time.time()
             await asyncio.sleep(1)
 
 def setup(bot):
