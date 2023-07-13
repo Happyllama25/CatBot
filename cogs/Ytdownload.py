@@ -85,13 +85,17 @@ class Ytdownload(commands.Cog):
     async def send_progress_updates(self):
         print("send_progress_updates")
         last_update = time.time()
-        while self.download_in_progress == True:
+        while self.download_in_progress:
             print("while loop")
+            print("download_in_progress:", self.download_in_progress)
             if time.time() - last_update >= 1:
                 print("update message")
                 await self.message.edit(content=self.progress)  # Edit the message directly
                 last_update = time.time()
             await asyncio.sleep(1)
+            print("end of iteration")
+        print("loop finished")
+
 
 def setup(bot):
     bot.add_cog(Ytdownload(bot))
