@@ -65,6 +65,8 @@ async def on_message(message):
         await message.channel.send('https://tenor.com/view/shut-up-shut-up-normie-normie-dance-gif-16989611')
     if 'smart pistol' in message.content:
         await message.channel.send('smart pistol gay-o-meter:\n🟢🟢🟡🟡🔴🔴\n100% - very gay')
+    if '?ploo' in message.content:
+        await message.channel.send('https://cdn.discordapp.com/attachments/883224856047525891/1130596767256301628/Ploo.gif')
     if 'bad catbot' in message.content:
         await message.channel.send('https://cdn.discordapp.com/attachments/858603126192865290/958530312000929792/unknown.png?size=4096')
 
