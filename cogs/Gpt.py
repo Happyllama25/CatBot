@@ -14,74 +14,74 @@ class Gpt(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command()
-    async def testvoice(self, ctx):
-        if not ctx.author.voice or not ctx.author.voice.channel:
-            await ctx.send("You are not connected to a voice channel.")
-            return
+    # @commands.slash_command()
+    # async def testvoice(self, ctx):
+    #     if not ctx.author.voice or not ctx.author.voice.channel:
+    #         await ctx.send("You are not connected to a voice channel.")
+    #         return
         
-        voice_channel = ctx.author.voice.channel
-        voice_client = await voice_channel.connect()
+    #     voice_channel = ctx.author.voice.channel
+    #     voice_client = await voice_channel.connect()
 
-        # audio_file = "audio.wav"  # Provide the path to your audio file here
+    #     # audio_file = "audio.wav"  # Provide the path to your audio file here
 
-        # Convert voice to PCM format and start recording
-        # voice_client.source = disnake.PCMVolumeTransformer(disnake.FFmpegPCMAudio(audio_file))
-        # voice_client.start_recording()
+    #     # Convert voice to PCM format and start recording
+    #     # voice_client.source = disnake.PCMVolumeTransformer(disnake.FFmpegPCMAudio(audio_file))
+    #     # voice_client.start_recording()
 
-        await ctx.send("Recording started. Click the button to stop recording.")
+    #     await ctx.send("Recording started. Click the button to stop recording.")
 
-    @commands.slash_command()
-    async def transcribe(self, ctx):
-        if not ctx.author.voice or not ctx.author.voice.channel:
-            await ctx.send("You are not connected to a voice channel.")
-            return
+    # @commands.slash_command()
+    # async def transcribe(self, ctx):
+    #     if not ctx.author.voice or not ctx.author.voice.channel:
+    #         await ctx.send("You are not connected to a voice channel.")
+    #         return
         
-        voice_channel = ctx.author.voice.channel
-        voice_client = await voice_channel.connect()
+    #     voice_channel = ctx.author.voice.channel
+    #     voice_client = await voice_channel.connect()
 
-        audio_file = "audio.wav"  # Provide the path to your audio file here
+    #     audio_file = "audio.wav"  # Provide the path to your audio file here
 
-        # Convert voice to PCM format and start recording
-        voice_client.source = disnake.PCMVolumeTransformer(disnake.FFmpegPCMAudio(audio_file))
-        voice_client.start_recording()
+    #     # Convert voice to PCM format and start recording
+    #     voice_client.source = disnake.PCMVolumeTransformer(disnake.FFmpegPCMAudio(audio_file))
+    #     voice_client.start_recording()
 
-        await ctx.send("Recording started. Click the button to stop recording.")
+    #     await ctx.send("Recording started. Click the button to stop recording.")
 
-        def check_author(message):
-            return message.author == ctx.author and message.content == '!stop'
+    #     def check_author(message):
+    #         return message.author == ctx.author and message.content == '!stop'
         
-        try:
-            await self.bot.wait_for('message', check=check_author, timeout=600)  # Timeout after 10 minutes
-        except TimeoutError:
-            await ctx.send("Recording timed out. Transcription aborted.")
-            voice_client.stop_recording()
-            await voice_client.disconnect()
-            return
+    #     try:
+    #         await self.bot.wait_for('message', check=check_author, timeout=600)  # Timeout after 10 minutes
+    #     except TimeoutError:
+    #         await ctx.send("Recording timed out. Transcription aborted.")
+    #         voice_client.stop_recording()
+    #         await voice_client.disconnect()
+    #         return
 
-        voice_client.stop_recording()
-        await voice_client.disconnect()
+    #     voice_client.stop_recording()
+    #     await voice_client.disconnect()
 
-        await ctx.send("Recording stopped. Transcribing audio...")
+    #     await ctx.send("Recording stopped. Transcribing audio...")
 
-        # Send audio data to Whisper API
-        with open(audio_file, 'rb') as f:
-            audio_data = f.read()
+    #     # Send audio data to Whisper API
+    #     with open(audio_file, 'rb') as f:
+    #         audio_data = f.read()
             
-        headers = {
-            'Authorization': 'Bearer YOUR_WHISPER_API_TOKEN',
-            'Content-Type': 'audio/wav'
-        }
+    #     headers = {
+    #         'Authorization': 'Bearer YOUR_WHISPER_API_TOKEN',
+    #         'Content-Type': 'audio/wav'
+    #     }
         
-        response = requests.post('https://api.whisper.ai/transcribe', headers=headers, data=audio_data)
-        if response.status_code == 200:
-            transcription = response.json().get('transcription')
-            await ctx.send(f"Transcription: {transcription}")
-        else:
-            await ctx.send("Transcription failed.")
+    #     response = requests.post('https://api.whisper.ai/transcribe', headers=headers, data=audio_data)
+    #     if response.status_code == 200:
+    #         transcription = response.json().get('transcription')
+    #         await ctx.send(f"Transcription: {transcription}")
+    #     else:
+    #         await ctx.send("Transcription failed.")
 
-        # Clean up the audio file
-        os.remove(audio_file)
+    #     # Clean up the audio file
+    #     os.remove(audio_file)
 
     @commands.slash_command(name='gpt', description="ChatGPT integration - AI response")
     async def gpt(self, ctx, *, message: str):

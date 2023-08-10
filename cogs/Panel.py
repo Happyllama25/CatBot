@@ -48,7 +48,7 @@ class Panel(commands.Cog):
     @commands.slash_command(name = "status", description="Status for server ID (Used with /servers)")
     async def status(self, ctx, identifier:str):
         if identifier == '4529cae6' and ctx.author != self.bot.owner:
-            return await ctx.send('lol no')
+            await ctx.send('This is main catbot, only issue restarts if needed, not shutdowns as only the panel can start it again')
         await ctx.send("Querying node...")
         #Query for resources API (status, uptime, memory usage, etc)
         url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/resources'
