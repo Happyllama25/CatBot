@@ -1,6 +1,9 @@
 import disnake
 import qrcode
-import aiohttp
+import json
+import random
+from datetime import datetime
+import os
 from io import BytesIO
 from disnake.ext import commands
 
@@ -8,6 +11,9 @@ class Utilities(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        if not os.path.exists("quotes.json"):
+            with open("quotes.json", "w") as file:
+                json.dump([], file)
 
 
     @commands.slash_command(
@@ -84,7 +90,100 @@ class Utilities(commands.Cog):
         except Exception as error:
             await ctx.send(f"nuh uh: {error}")
 
-    
+
+    @commands.message_command(name="quote")
+    async def quote(self, inter: disnake.ApplicationCommandInteraction, message: disnake.Message):
+        try:
+            message = await inter.channel.fetch_message(message.id)
+        except disnake.NotFound:
+            await inter.response.send_message("Message not found.")
+            return
+        except disnake.Forbidden:
+            await inter.response.send_message("I don't have permission to fetch that message.")
+            return
+
+        embed = disnake.Embed(description=message.content, color=disnake.Color.blue(), timestamp=message.created_at)
+        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar.url)
+        embed.set_footer(text=f"Quoted by {inter.author.display_name}")
+
+        await inter.response.send_message(embed=embed)
+
+        # Save the quote to quotes.json
+        with open("quotes.json", "r") as file:
+            data = json.load(file)
+
+        quote_data = {
+            "content": message.content,
+            "author_display_name": message.author.display_name,
+            "author_id": str(message.author.id),
+            "quoted_by_display_name": inter.author.display_name,
+            "quoted_by_id": str(inter.author.id),
+            "timestamp": str(message.created_at),
+            "message_id": str(message.id),
+            "channel_id": str(message.channel.id)
+        }
+
+        data.append(quote_data)
+
+        with open("quotes.json", "w") as file:
+            json.dump(data, file, indent=4)
+
+    @commands.slash_command(name="recall_quote", description="Get a quote from archive. Right-click a message -> apps -> quote to add.")
+    async def recall_quote(self, inter: disnake.ApplicationCommandInteraction, user: disnake.User = None):
+
+        # Load the quotes
+        with open("quotes.json", "r") as file:
+            data = json.load(file)
+
+        # If a user is specified, filter quotes by that user
+        if user:
+            quotes_by_user = [quote for quote in data if quote["author_id"] == str(user.id)]
+            if not quotes_by_user:
+                await inter.send(f"No quotes found for {user.display_name}")
+                return
+            
+
+            # Convert the timestamp string into a datetime object for formatting
+            formatted_quotes = []
+            for quote in quotes_by_user:
+                try:
+                    channel = inter.guild.get_channel(int(quote['channel_id']))
+                    original_message = await channel.fetch_message(int(quote['message_id']))
+                    link = original_message.jump_url
+                except disnake.NotFound:
+                    link = "Message not found"
+                except disnake.Forbidden:
+                    link = "No permission"
+                except KeyError:  # In case there's a quote that doesn't have channel_id or message_id
+                    link = "Data missing"
+
+                timestamp = int(datetime.fromisoformat(quote["timestamp"]).timestamp())
+                formatted_time = f'<t:{timestamp}:F>'
+                formatted_quotes.append(f"> {quote['content']}\nSent on {formatted_time} - {link} 😳")
+
+            # Join all quotes into a single string
+            message_content = f"Quotes by {user.display_name}:\n\n" + "\n\n".join(formatted_quotes)
+            
+            await inter.send(message_content[:2000])
+            return
+        quote_data = random.choice(data)
+
+        author = self.bot.get_user(int(quote_data["author_id"]))
+        quoted_by = self.bot.get_user(int(quote_data["quoted_by_id"]))
+
+        author_name = author.display_name if author else quote_data["author_display_name"]
+        quoted_by_name = quoted_by.display_name if quoted_by else quote_data["quoted_by_display_name"]
+
+        discord_timestamp = int(datetime.fromisoformat(quote_data["timestamp"]).timestamp())
+
+        # Construct the message
+        message = (
+            f'> # {quote_data["content"]}\n'
+            f'## Sent on <t:{discord_timestamp}:F> by {author_name}\n'
+            f'### _Quoted by {quoted_by_name}_'
+        )
+
+        await inter.send(message)
 
 def setup(bot):
     bot.add_cog(Utilities(bot))
