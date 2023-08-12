@@ -66,8 +66,9 @@ class Ytdownload(commands.Cog):
         # Start the send_progress_updates coroutine
         update_task = asyncio.create_task(self.send_progress_updates())
 
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            try:
+                ydl.cache.remove()
                 info_dict = ydl.extract_info(url, download=False)
                 video_title = info_dict.get('title', None)
                 safe_title = re.sub(r'\W+', '_', video_title, flags=re.UNICODE)
@@ -96,7 +97,7 @@ class Ytdownload(commands.Cog):
 
                 if codec == 'hevc':  # 'hevc' stands for H.265
                     # Convert to H.264 using FFmpeg
-                    await ctx.edit_original_response(content=f"Video is H.265, Converting to H.264 for compatibility...")
+                    await ctx.edit_original_response(content="Video is H.265, Converting to H.264 for compatibility...")
 
                     output_file = f"converted_downloaded_video.{ext}"
                     command = ['ffmpeg', '-i', f"downloaded_video.{ext}", '-c:v', 'libx264', '-c:a', 'copy', output_file]
@@ -112,7 +113,6 @@ class Ytdownload(commands.Cog):
                     # there gonnabe a downloaded_video.mp4 AND a converted_downloaded_video.mp4
                     os.remove(f'downloaded_video.{ext}')
                     os.rename(output_file, video_file)
-
                 else:
                     os.rename(f'downloaded_video.{ext}', video_file)
                     self.download_in_progress = False
@@ -125,12 +125,12 @@ class Ytdownload(commands.Cog):
                     with open(video_file, 'rb') as fp:
                         await ctx.send(file=disnake.File(fp, f'{video_file}'))
                     os.remove(video_file)
-        except yt_dlp.utils.DownloadError as e:
-            await ctx.edit_original_response(content=f"error occur :(\n```ansi\n{e}\n```")
-            self.download_in_progress = False
-        except Exception as e:
-            await ctx.edit_original_response(content=f"worser error occur :(\n```ansi\n{e}\n```")
-            self.download_in_progress = False
+            except yt_dlp.utils.DownloadError as e:
+                await ctx.edit_original_response(content=f"download error occur :(\n```ansi\n{e}\n```")
+                self.download_in_progress = False
+            except Exception as e:
+                await ctx.edit_original_response(content=f"worser error occur :(\n```ansi\n{e}\n```")
+                self.download_in_progress = False
 
         update_task.cancel()
         print("cancelled update loop and set var to false")
@@ -143,7 +143,7 @@ class Ytdownload(commands.Cog):
             self.progress = f"Downloading `{filename}`\nProgress: {percent}\nETA: {eta}"
 
     async def send_progress_updates(self):
-        last_update = time.time() + 1
+        last_update = time.time() + 2
         while self.download_in_progress:
             if time.time() - last_update >= 1:
                 await self.message.edit(content=self.progress)  # Edit the message directly
