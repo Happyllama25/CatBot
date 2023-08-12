@@ -56,7 +56,6 @@ async def on_message(message):
     if message.author == bot.user:
         return
     if 'good catbot' in message.content:
-        print('Keyword found in message')
         embed = disnake.Embed(title='😺', colour=0x400080)
         embed.set_image(url = 'https://c.tenor.com/ECAwQcWmgO4AAAAd/kitty-review.gif')
         await message.channel.send(embed=embed)
