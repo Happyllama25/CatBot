@@ -84,12 +84,34 @@ class Fun(commands.Cog):
     async def heyguys(self, ctx):
         await ctx.send("Hey guys, did you know that in terms of male human and female Pokémon breeding, Vaporeon is the most compatible Pokémon for humans? Not only are they in the field egg group, which is mostly comprised of mammals, Vaporeon are an average of 3''03' tall and 63.9 pounds, this means they're large enough to be able handle human dicks, and with their impressive Base Stats for HP and access to Acid Armor, you can be rough with one. Due to their mostly water based biology, there's no doubt in my mind that an aroused Vaporeon would be incredibly wet, so wet that you could easily have sex with one for hours without getting sore. They can also learn the moves Attract, Baby-Doll Eyes, Captivate, Charm, and Tail Whip, along with not having fur to hide nipples, so it'd be incredibly easy for one to get you in the mood. With their abilities Water Absorb and Hydration, they can easily recover from fatigue with enough water. No other Pokémon comes close to this level of compatibility. Also, fun fact, if you pull out enough, you can make your Vaporeon turn white. Vaporeon is literally built for human dick. Ungodly defense stat+high HP pool+Acid Armor means it can take cock all day, all shapes and sizes and still come for more")
 
-    @commands.slash_command(name='members', description='Lists human and bot members ')
+    @commands.slash_command(name="members", description="Displays server statistics")
     async def members(self, ctx):
-        membersBots = ctx.guild.member_count - len([x for x in ctx.guild.members if not x.bot])
-        membersUsers = len([x for x in ctx.guild.members if not x.bot])
-        await ctx.send(f"Total members: {ctx.guild.member_count}\nBots: {membersBots}\nUsers: {membersUsers}")
+        guild = ctx.guild
 
+        # Gathering statistics
+        online_members = sum(1 for member in guild.members if member.status != disnake.Status.offline)
+        text_channels = len([channel for channel in guild.channels if isinstance(channel, disnake.TextChannel)])
+        voice_channels = len([channel for channel in guild.channels if isinstance(channel, disnake.VoiceChannel)])
+        role_count = len(guild.roles)
+        emoji_count = len(guild.emojis)
+        bots = sum(1 for member in guild.members if member.bot)
+
+        # Creating an embed with the statistics
+        embed = disnake.Embed(title=f"Stats for {guild.name}", color=disnake.Color.blue())
+        embed.add_field(name="Server Creation Date", value=guild.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+        embed.add_field(name="Member Count", value=str(guild.member_count))
+        embed.add_field(name="Online Members", value=str(online_members))
+        embed.add_field(name="Total Channels", value=str(text_channels + voice_channels))
+        embed.add_field(name="Text Channels", value=str(text_channels))
+        embed.add_field(name="Voice Channels", value=str(voice_channels))
+        embed.add_field(name="Role Count", value=str(role_count))
+        embed.add_field(name="Emoji Count", value=str(emoji_count))
+        embed.add_field(name="Verification Level", value=str(guild.verification_level))
+        embed.add_field(name="Boost Level", value=str(guild.premium_tier))
+        embed.add_field(name="Number of Boosts", value=str(guild.premium_subscription_count))
+        embed.add_field(name="Bots", value=str(bots))
+
+        await ctx.send(embed=embed)
     @commands.slash_command(name = 'xkcd', description = 'Daily comics from xkcd')
     async def xkcd(self, ctx):
         async with aiohttp.ClientSession() as session:
