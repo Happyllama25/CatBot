@@ -11,8 +11,9 @@ class Titanfall(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(name="titanfall", description="List of active Northstar servers")
-    async def command_name(self, ctx):
+    async def titanfall(self, ctx):
         await ctx.response.defer()
+        servers = []
 
         try:
             url = "https://northstar.tf/client/servers"
@@ -29,26 +30,30 @@ class Titanfall(commands.Cog):
         servers = data
         server_count = len(data)
 
-        priority_server = None
-        priority_index = None
-        for index, server in enumerate(servers):
+
+        priority_server = []
+        for server in servers:
             if "happyllama25" in server["name"].lower():
-                priority_server += server
-                priority_index = index
+                priority_server.append(server)
 
         message = f"```diff\n+ {server_count} servers were found - displaying first 5 results\n\n"
 
         if priority_server:
-            servers.pop(priority_index)
-            servers.insert(0, priority_server)
+            for ps in priority_server:
+                servers.remove(ps)
+            servers = priority_server + servers # Add priority servers to the start of the servers list
         else:
             message += "- Happyllama25 servers not found\n\n"
 
-        # Sort the servers by player count in descending order
-        servers.sort(key=lambda server: server["playerCount"], reverse=True)
+        # If you want to move all priority servers to the front:
+        for server in reversed(priority_server):
+            servers.remove(server)
+            servers.insert(0, server)
         total_players = 0
 
         for server in servers[:5]:
+            if not isinstance(server, dict):
+                print("Unexpected server format:", server)
             message += f"{server['name']}\n"
             if server['playerCount'] == server['maxPlayers']:
                 message += f"- {server['playerCount']} / {server['maxPlayers']} players connected\n"
