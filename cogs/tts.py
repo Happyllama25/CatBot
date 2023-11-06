@@ -52,7 +52,6 @@ class TTSCog(commands.Cog):
         try:
             source = disnake.FFmpegPCMAudio(output_file_path)
             voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
-            await ctx.edit_original_response(file=disnake.File(output_file_path))
 
 
             # Wait for the audio to play
@@ -61,6 +60,7 @@ class TTSCog(commands.Cog):
             # Disconnect after the bot has played the TTS message
             await asyncio.sleep(1)
             await voice_client.disconnect()
+            await ctx.edit_original_response(file=disnake.File(output_file_path))
         except Exception as e:
             await ctx.edit_original_response(content=f"An error occurred: {e}")
         finally:
