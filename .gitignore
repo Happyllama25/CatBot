@@ -6,3 +6,5 @@ test.*
 feet/
 .devcontainer/
 __pycache__/
+*.json
+output/
