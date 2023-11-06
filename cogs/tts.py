@@ -1,8 +1,10 @@
 from disnake.ext import commands
-from elevenlabs import generate
+from elevenlabs import generate, set_api_key
 import disnake
 import asyncio
 import os
+
+set_api_key(os.getenv("ELEVEN_API_KEY"))
 
 class TTSCog(commands.Cog):
     def __init__(self, bot):
@@ -31,8 +33,8 @@ class TTSCog(commands.Cog):
         await ctx.edit_original_response(content="Generating audio...")
         audio_data = generate(
             text=f'{message}',
-            voice="Dorothy",
-            model="eleven_multilingual_v1"
+            voice="Adam",
+            model="eleven_multilingual_v2"
         )
 
         # Specify the filename for the output file
