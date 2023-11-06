@@ -7,3 +7,4 @@ azure-cognitiveservices.speech==1.29.0
 azure-ai-vision==0.13.0b1
 yt-dlp==2023.3.4
 qrcode[pil]==7.4.2
+elevenlabs==0.2.26
