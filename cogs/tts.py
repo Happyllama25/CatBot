@@ -57,6 +57,7 @@ class TTSCog(commands.Cog):
             while voice_client.is_playing():
                 await asyncio.sleep(1)
             # Disconnect after the bot has played the TTS message
+            await asyncio.sleep(1)
             await voice_client.disconnect()
         except Exception as e:
             await ctx.edit_original_response(content=f"An error occurred: {e}")
