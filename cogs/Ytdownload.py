@@ -117,7 +117,7 @@ class Ytdownload(commands.Cog):
         current_time = time.time()
         if current_time - self.last_update > 1:
             # Append the animated, blue character to the message
-            animated_message = f"```ansi\n{message}\n\n{BLUE}{animation_char}{RESET} (If the process is frozen, run /restart and try again)```"
+            animated_message = f"```ansi\n{message}\n\n{BLUE}{animation_char}{RESET}```"
             await ctx.edit_original_response(content=animated_message)
             self.last_update = current_time
 
