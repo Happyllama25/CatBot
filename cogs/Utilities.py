@@ -4,6 +4,7 @@ import json
 import random
 from datetime import datetime
 import os
+import sys
 from io import BytesIO
 from disnake.ext import commands
 
@@ -13,6 +14,12 @@ class Utilities(commands.Cog):
         self.bot = bot
         if not os.path.exists("quotes.json"):
             with open("quotes.json", "w") as file:
+                json.dump([], file)
+        if not os.path.exists("reminders.json"):
+            with open("reminders.json", "w") as file:
+                json.dump([], file)
+        if not os.path.exists("notes.json"):
+            with open("notes.json", "w") as file:
                 json.dump([], file)
 
 
@@ -102,9 +109,9 @@ class Utilities(commands.Cog):
             await inter.response.send_message("I don't have permission to fetch that message.")
             return
 
-        embed = disnake.Embed(description=message.content, color=disnake.Color.blue(), timestamp=message.created_at)
+        embed = disnake.Embed(description=f'{message.content}', color=disnake.Color.blue(), timestamp=message.created_at)
         embed.set_author(name=message.author.display_name, icon_url=message.author.avatar.url)
-        embed.set_footer(text=f"Quoted by {inter.author.display_name}")
+        embed.set_footer(text=f"Quoted by {inter.author.display_name} • {message.jump_url}")
 
         await inter.response.send_message(embed=embed)
 
@@ -184,6 +191,43 @@ class Utilities(commands.Cog):
         )
 
         await inter.send(message)
+
+    @commands.slash_command(name="note", description="Note something down for later")
+    async def note(self, inter, note: str = None):
+        if not note:
+            with open("notes.json", "r") as file:
+                data = json.load(file)
+
+            for note in data:
+                content = note["note"]
+                author = note["author"]
+                author_id = note["author_id"]
+                time = note["time"]
+            
+
+
+
+            return
+        with open("notes.json", "r") as file:
+            data = json.load(file)
+
+        data.append({
+            "note": note,
+            "author": inter.author.display_name,
+            "author_id": str(inter.author.id),
+            "time": str(datetime.now())
+        })
+
+        with open("notes.json", "w") as file:
+            json.dump(data, file, indent=4)
+
+        await inter.send(f"Added note: {note}")
+        
+    @commands.slash_command(name="restart", description="Restarts the bot")
+    async def restart(self, ctx):
+        await ctx.send("Restarting the bot...")
+        os.execv(sys.executable, ['python'] + sys.argv)
+
 
 def setup(bot):
     bot.add_cog(Utilities(bot))

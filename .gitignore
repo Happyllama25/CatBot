@@ -8,3 +8,4 @@ feet/
 __pycache__/
 *.json
 output/
+ffmpeg2pass-0.*
