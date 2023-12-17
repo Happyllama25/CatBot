@@ -1,12 +1,21 @@
 import disnake
-import re
 from disnake.ext import commands
 import yt_dlp
 import os
-import time
+import logging
+import re
 import asyncio
+import time
 import subprocess
-import concurrent.futures
+from pathlib import Path
+
+
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+MAGENTA = "\033[35m"
+CYAN = "\033[36m"
+RESET = "\033[0m"
 
 class MyLogger(object):
     def debug(self, msg):
@@ -21,137 +30,203 @@ class MyLogger(object):
 class Ytdownload(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.progress = ". . . - - - . . ."
         self.download_in_progress = False
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-
-    @commands.slash_command(name='search', description='Search for a YouTube video')
-    async def search(self, ctx, *, query: str):
-        await ctx.response.defer()
-        await ctx.edit_original_response(content=f"congrats, you found a command i have not finished yet, you get a cookie :cookie: tell happyllama25 to get his ass out of bed and finish this command")
+        self.last_update = 0
+        self.lock = asyncio.Lock()
 
     @commands.slash_command(name="download", description="Download a YouTube video")
-    async def download(self, ctx, url: str, options: str = commands.Param(default="Video+Audio", choices=["Video+Audio","Video","Audio"], description="What format to download the video in"), webm: bool = commands.Param(description="Whether to download in .webm (Might be a smaller file if too big normally)", default=False)):
-        if self.download_in_progress == True:
-            await ctx.send("A download is already in progress. Please wait for it to finish before starting a new download.")
+    async def download(self, ctx, url: str = commands.Param(name='url', description="The URL to the video (Also works with tiktok and some* other video hosts)"), quality: str = commands.Param(default="best", choices={"Best Audio+Video": "best", "Best Audio": "bestaudio", "Best Video": "bestvideo", "Worst Audio+Video": "worst", "Worst Audio": "worstaudio", "Worst Video": "worstvideo"}, name="quality", description="Defaults to Best Audio + Video")):
+        if self.download_in_progress:
+            await ctx.send(content="A download is already in progress. Please wait for it to finish.")
             return
 
-        if webm == False:
-            if options == "Video+Audio":
-                config = 'bestvideo.2+bestaudio[ext=mp4]/best[ext=mp4]'
-            elif options == "Video":
-                config = 'worstvideo.2[ext=mp4]'
-            elif options == "Audio":
-                config = 'bestaudio[ext=m4a]'
-        else:
-            if options == "Video+Audio":
-                config = 'bestvideo+bestaudio[ext=webm]/best[ext=webm]'
-            elif options == "Video":
-                config = 'bestvideo[ext=webm]'
-            elif options == "Audio":
-                config = 'bestaudio[ext=m4a]'
+        await ctx.response.defer()
+        self.download_in_progress = True
+
+        try:
+            video_file, video_title = await self.download_video(ctx, url, quality)
+            print("Looking for video file:", video_file)
+            if not os.path.exists(video_file):
+                raise FileNotFoundError("Downloaded video file not found on disk.")
+
+            await self.send_video(ctx, video_file, video_title)
+        except Exception as e:
+            await ctx.send(content=f"An error occurred: {e}")
+        finally:
+            self.download_in_progress = False
+            if os.path.exists(video_file):
+                os.remove(video_file)
 
 
+    async def download_video(self, ctx, url, quality):
         ydl_opts = {
-            'format': f'{config}',
             'logger': MyLogger(),
-            'progress_hooks': [lambda status: self.report_progress(ctx, status)],
-            'outtmpl': 'downloaded_video.%(ext)s'
+            'progress_hooks': [lambda status: self.bot.loop.create_task(self.ytdl_progress_hook(ctx, status))],
+            'outtmpl': './output/downloaded_file.%(ext)s',
+            'format': quality
         }
 
-
-        await ctx.response.defer()
-
-        self.download_in_progress = True
-        # Start the send_progress_updates coroutine
-        update_task = asyncio.create_task(self.send_progress_updates())
+        if "audio" in quality:
+            ydl_opts['postprocessors'] = [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+            }]
+        else:
+            ydl_opts['postprocessors'] = [{
+                'key': 'FFmpegVideoConvertor',
+                'preferedformat': 'mp4',
+            }]
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            try:
-                ydl.cache.remove()
-                info_dict = ydl.extract_info(url, download=False)
-                video_title = info_dict.get('title', None)
-                safe_title = re.sub(r'\W+', '_', video_title, flags=re.UNICODE)
-
-                if webm:
-                    ext = "webm"
-                elif options == "Audio":
-                    ext = "m4a"
-                else:
-                    ext = "mp4"
+            info_dict = await asyncio.to_thread(ydl.extract_info, url, download=True)
+            base_path = './output/downloaded_file'
+            video_title = info_dict.get('title')
 
 
+            for ext in ['mp4', 'mp3']:
+                potential_path = f'{base_path}.{ext}'
+                if os.path.exists(potential_path):
+                    return potential_path, video_title
 
-                video_file = f'{safe_title[:32]}.{ext}'
-                self.filename = video_file #this is used in the update progress thingy
+            original_path = ydl.prepare_filename(info_dict)
+            return original_path, video_title
 
-                self.message = await ctx.edit_original_response(f"Downloading **{video_title}**")
 
-                loop = asyncio.get_event_loop()
-                await loop.run_in_executor(self.executor, lambda: ydl.download([url]))
+    async def ytdl_progress_hook(self, ctx, status):
+        async with self.lock:
+            current_time = time.time()
+            if status.get('status') == 'downloading' and current_time - self.last_update > 1:
+                filename = os.path.basename(status['filename'])
+                percent = status.get('_percent_str', 'N/A')
+                eta = status.get('_eta_str', 'N/A')
+                progress = f"\u001b[1;37mDownloading: \u001b[0m{filename}\n\u001b[1;37mProgress: \u001b[0m{percent}\n\u001b[1;37mETA: \u001b[0m{eta}"
+                await self.update_progress_message(ctx, progress)
 
-                self.download_in_progress = False
-                # Check the codec of the video
-                command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name', '-of', 'default=noprint_wrappers=1:nokey=1', f'downloaded_video.{ext}']
-                codec = subprocess.check_output(command).decode('utf-8').strip()
+    async def update_progress_message(self, ctx, message):
+        # Define a set of Braille characters for the animation
+        animation_chars = ['⠋', '⠙', '⠸', '⠴', '⠦', '⠇']
+        
+        # Calculate the index for the next animation character
+        animation_index = int(time.time()) % len(animation_chars)
+        animation_char = animation_chars[animation_index]
 
-                if codec == 'hevc':  # 'hevc' stands for H.265
-                    # Convert to H.264 using FFmpeg
-                    await ctx.edit_original_response(content="Video is H.265, Converting to H.264 for compatibility...")
+        # ANSI escape code for blue text
+        BLUE = "\u001b[34m"
+        RESET = "\u001b[0m"
 
-                    output_file = f"converted_downloaded_video.{ext}"
-                    command = ['ffmpeg', '-i', f"downloaded_video.{ext}", '-c:v', 'libx264', '-c:a', 'copy', output_file]
-                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        current_time = time.time()
+        if current_time - self.last_update > 1:
+            # Append the animated, blue character to the message
+            animated_message = f"```ansi\n{message}\n\n{BLUE}{animation_char}{RESET} (If the process is frozen, run /restart and try again)```"
+            await ctx.edit_original_response(content=animated_message)
+            self.last_update = current_time
 
-                    # Parse ffmpeg output for progress and update message
-                    last_update = time.time() + 1  # This ensures the first line is parsed
-                    for line in process.stdout:
-                        if "frame=" in line and time.time() - last_update > 1:  # This checks for lines that show progress and ensures at least 1 second between updates
-                            await ctx.edit_original_response(content=f"Converting: {line.strip()}")
-                            last_update = time.time()
 
-                    # there gonnabe a downloaded_video.mp4 AND a converted_downloaded_video.mp4
-                    os.remove(f'downloaded_video.{ext}')
-                    os.rename(output_file, video_file)
-                else:
-                    os.rename(f'downloaded_video.{ext}', video_file)
-                    self.download_in_progress = False
-                size = os.path.getsize(video_file)
-                if size > 25 * 1024 * 1024:
-                    await ctx.edit_original_response(content=f"The video '{video_title}' is too big for discord to handle ({size / 1024 / 1024:.2f}MB > 25MB) :( discord is a big meanie\nLEGALIZE NUCLEAR BOMBS >:)")
-                    os.remove(video_file)
-                else:
-                    await ctx.edit_original_response(content=f"Downloaded **{video_title}**! Uploading {size / 1024 / 1024:.2f}MB...")
-                    with open(video_file, 'rb') as fp:
-                        await ctx.send(file=disnake.File(fp, f'{video_file}'))
-                    os.remove(video_file)
-            except yt_dlp.utils.DownloadError as e:
-                await ctx.edit_original_response(content=f"download error occur :(\n```ansi\n{e}\n```")
-                self.download_in_progress = False
-            except Exception as e:
-                await ctx.edit_original_response(content=f"worser error occur :(\n```ansi\n{e}\n```")
-                self.download_in_progress = False
 
-        update_task.cancel()
-        print("cancelled update loop and set var to false")
 
-    def report_progress(self, ctx, status):
-        if status.get('status') == 'downloading':
-            filename = self.filename
-            percent = status['_percent_str']
-            eta = status['_eta_str']
-            self.progress = f"Downloading `{filename}`\nProgress: {percent}\nETA: {eta}"
+    async def send_video(self, ctx, video_file, video_title):
+        try:
+            
+            size = os.path.getsize(video_file) / 1024 / 1024  # Size in MB
+            if size > 25:
+                
+                video_file = await self.compress_file(ctx, video_file, 24)
 
-    async def send_progress_updates(self):
-        last_update = time.time() + 2
-        while self.download_in_progress:
-            if time.time() - last_update >= 1:
-                await self.message.edit(content=self.progress)  # Edit the message directly
-                last_update = time.time()
-            else:
-                await asyncio.sleep(1)
-        print("loop finished")
 
+            size = os.path.getsize(video_file) / 1024 / 1024
+            file_extension = os.path.splitext(video_file)[1]
+            upload_filename = f"{video_title}{file_extension}"
+
+            await ctx.edit_original_response(content=f"Uploading {upload_filename} ({size:.2f} MB)...")
+            with open(video_file, 'rb') as fp:
+                await ctx.send(file=disnake.File(fp, upload_filename))
+            os.remove(video_file)
+        except Exception as e:
+            logging.error(f"Error in sending video: {e}")
+            await ctx.edit_original_response(content=f"An error occurred while sending the video: {e}")
+
+
+    async def compress_file(self, ctx, video_file, target_size_MB):
+        video_file_path = Path(video_file)
+        target_size_kb = target_size_MB * 1024
+        duration = self.get_video_duration(video_file)
+        if duration <= 0:
+            return video_file
+
+        target_bitrate = int((target_size_kb * 8) / duration) - 128
+
+        first_pass_cmd = [
+            'ffmpeg', '-y', '-i', video_file, '-c:v', 'libx264', '-preset', 'medium',
+            '-b:v', str(target_bitrate) + 'k', '-progress', '-', '-pass', '1', '-an', '-f', 'mp4', '/dev/null'
+        ]
+
+        await self.run_ffmpeg(ctx, first_pass_cmd, "Analysing video (1/2)")
+
+        output_file = str(video_file_path.stem) + "_compressed.mp4"
+        second_pass_cmd = [
+            'ffmpeg', '-i', str(video_file_path), '-c:v', 'libx264', '-preset', 'medium',
+            '-b:v', str(target_bitrate) + 'k', '-progress', '-', '-nostats', '-pass', '2', '-c:a', 'aac', '-b:a', '128k', output_file
+        ]
+
+        await self.run_ffmpeg(ctx, second_pass_cmd, "Compressing video (2/2)")
+
+        return Path(output_file)
+    
+    async def run_ffmpeg(self, ctx, cmd, pass_description):
+        process = await asyncio.create_subprocess_exec(
+        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+
+        progress_data = {}
+
+        while True:
+            line = await process.stdout.readline()
+            if not line:
+                break
+            line = line.decode().strip()
+
+            # Process each line if it contains an '=' character
+            if '=' in line:
+                key, value = line.split('=', 1)
+                progress_data[key] = value
+
+                frame_number = progress_data.get('frame', '...')
+                fps = progress_data.get('fps', '...')
+                bitrate = progress_data.get('bitrate', '...')
+                time_str = progress_data.get('out_time', '...').split('.')[0]
+                speed = progress_data.get('speed', '...')
+
+                progress_description = f"\u001b[1;37m{pass_description}"
+                progress_time = f"\u001b[1;37mTime: {YELLOW}{time_str}"
+                progress_bitrate = f"\u001b[1;37mBitrate: {YELLOW}{bitrate}"
+                progress_frame = f"\u001b[1;37mFrame: {YELLOW}{frame_number}"
+                progress_fps = f"\u001b[1;37mFPS: {YELLOW}{fps}"
+                progress_speed = f"\u001b[1;37mSpeed: {YELLOW}{speed}"
+
+                message = f"{progress_description}\n\n{progress_time}\n{progress_bitrate}\n{progress_frame}\n{progress_fps}\n{progress_speed}"
+
+                # Send the message
+                await self.update_progress_message(ctx, message)
+
+        await process.wait()
+
+
+    def get_video_duration(self, video_file):
+        try:
+            result = subprocess.run(
+                ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', video_file],
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True
+            )
+            return float(result.stdout.decode('utf-8').strip())
+        except Exception as e:
+            logging.error(f"Error getting video duration: {e}")
+            return 0
+
+    def file_exists(self, file_path):
+        print("Current working directory:", os.getcwd())
+        print("Checking file path:", file_path)
+        return os.path.exists(file_path)
+    
 
 def setup(bot):
     bot.add_cog(Ytdownload(bot))
