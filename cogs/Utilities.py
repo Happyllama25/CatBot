@@ -228,6 +228,36 @@ class Utilities(commands.Cog):
         await ctx.send("Restarting the bot...")
         os.execv(sys.executable, ['python'] + sys.argv)
 
+    @commands.slash_command(name="info", description="Get server or user info")
+    async def info(self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member = None):
+        if user:
+            embed = disnake.Embed(timestamp=datetime.utcnow(), color=disnake.Colour.purple())
+            embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url=user.display_avatar.url)
+            embed.set_thumbnail(url=user.display_avatar.url)
+            embed.add_field(name="Nickname", value=user.display_name, inline=True)
+            embed.add_field(name="Joined Server", value=user.joined_at.strftime("%d %b %Y %H:%M:%S"), inline=True)
+            embed.add_field(name="Account Created", value=user.created_at.strftime("%d %b %Y %H:%M:%S"), inline=True)
+            embed.add_field(name="Status", value=str(user.status).title(), inline=True)
+            activity = "None" if not user.activities else user.activities[0].name
+            embed.add_field(name="Activity", value=activity, inline=True)
+            embed.add_field(name="Top Role", value=user.top_role.name if user.top_role else "None", inline=True)
+            embed.add_field(name="Is Bot", value="Yes" if user.bot else "No", inline=True)
+            if user.premium_since:
+                embed.add_field(name="Boosting Since", value=user.premium_since.strftime("%d %b %Y %H:%M:%S"), inline=True)
+        else:
+            embed = disnake.Embed(timestamp=datetime.utcnow(), color=disnake.Colour.blue())
+            guild = inter.guild
+            embed.set_author(name=guild.name, icon_url=guild.icon.url if guild.icon else None)
+            embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
+            embed.add_field(name="Members", value=str(guild.member_count), inline=True)
+            embed.add_field(name="Roles", value=str(len(guild.roles)), inline=True)
+            embed.add_field(name="Created", value=guild.created_at.strftime("%d %b %Y %H:%M:%S"), inline=True)
+            embed.add_field(name="Boost Level", value=str(guild.premium_tier), inline=True)
+            embed.add_field(name="Boost Count", value=str(guild.premium_subscription_count), inline=True)
+            embed.add_field(name="Emojis", value=str(len(guild.emojis)), inline=True)
+            embed.add_field(name="Features", value=', '.join(guild.features), inline=False)
+
+        await inter.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Utilities(bot))
