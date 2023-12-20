@@ -226,7 +226,7 @@ class Utilities(commands.Cog):
     @commands.slash_command(name="restart", description="Restarts the bot")
     async def restart(self, ctx):
         await ctx.send("Restarting the bot...")
-        os.execv(sys.executable, ['python'] + sys.argv)
+        os._exit(0)
 
     @commands.slash_command(name="info", description="Get server or user info")
     async def info(self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member = None):
