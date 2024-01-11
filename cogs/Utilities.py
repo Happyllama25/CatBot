@@ -153,27 +153,50 @@ class Utilities(commands.Cog):
             # Convert the timestamp string into a datetime object for formatting
             formatted_quotes = []
             for quote in quotes_by_user:
+                link = "Message not found"  # Default message
                 try:
                     channel = inter.guild.get_channel(int(quote['channel_id']))
-                    original_message = await channel.fetch_message(int(quote['message_id']))
-                    link = original_message.jump_url
+
+                    # Check if channel exists
+                    if channel:
+                        original_message = await channel.fetch_message(int(quote['message_id']))
+                        link = original_message.jump_url
+                    else:
+                        link = "Channel not found"
+
                 except disnake.NotFound:
                     link = "Message not found"
                 except disnake.Forbidden:
                     link = "No permission"
-                except KeyError:  # In case there's a quote that doesn't have channel_id or message_id
+                except KeyError:
+                    # This handles cases where 'channel_id' or 'message_id' is missing in the quote
                     link = "Data missing"
 
                 timestamp = int(datetime.fromisoformat(quote["timestamp"]).timestamp())
                 formatted_time = f'<t:{timestamp}:F>'
-                formatted_quotes.append(f"> {quote['content']}\nSent on {formatted_time} - {link} 😳")
+                formatted_quotes.append(f"> {quote['content']}\nSent on {formatted_time} - {link}")
+
 
             # Join all quotes into a single string
-            message_content = f"Quotes by {user.display_name}:\n\n" + "\n\n".join(formatted_quotes)
+            message_content = f"Quotes by {user.display_name}:\n" + "\n".join(formatted_quotes)
             
             await inter.send(message_content[:2000])
             return
-        quote_data = random.choice(data)
+
+        # Calculate weights: less frequently used quotes are more likely to be chosen
+        max_usage = max(quote.get('usage_count', 0) for quote in data)
+        weights = [(max_usage - quote.get('usage_count', 0) + 1) for quote in data]
+        
+        # Select a quote based on weights
+        quote_data = random.choices(data, weights=weights, k=1)[0]
+
+        # Update the usage count
+        quote_data['usage_count'] = quote_data.get('usage_count', 0) + 1
+
+        # Save the updated data back to the file
+        with open("quotes.json", "w") as file:
+            json.dump(data, file)
+
 
         author = self.bot.get_user(int(quote_data["author_id"]))
         quoted_by = self.bot.get_user(int(quote_data["quoted_by_id"]))
@@ -183,10 +206,22 @@ class Utilities(commands.Cog):
 
         discord_timestamp = int(datetime.fromisoformat(quote_data["timestamp"]).timestamp())
 
+
+        try:
+            channel = inter.guild.get_channel(int(quote_data['channel_id']))
+            original_message = await channel.fetch_message(int(quote_data['message_id']))
+            link = original_message.jump_url
+        except disnake.NotFound:
+            link = "Message not found"
+        except disnake.Forbidden:
+            link = "No permission"
+        except KeyError:  # In case there's a quote that doesn't have channel_id or message_id
+            link = "Data missing"
+
         # Construct the message
         message = (
             f'> # {quote_data["content"]}\n'
-            f'## Sent on <t:{discord_timestamp}:F> by {author_name}\n'
+            f'## Sent on <t:{discord_timestamp}:F> by {author_name} - {link}\n'
             f'### _Quoted by {quoted_by_name}_'
         )
 
