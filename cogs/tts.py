@@ -38,7 +38,10 @@ class TTSCog(commands.Cog):
         )
 
         # Specify the filename for the output file
-        output_file_path = 'output/tts_output.mp3'
+        output_folder = 'tts_output'
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+        output_file_path = os.path.join(output_folder, 'tts_output.mp3')
 
         # Write the audio data to the file
         try:

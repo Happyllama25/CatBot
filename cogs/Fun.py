@@ -135,12 +135,17 @@ class Fun(commands.Cog):
             return
         else:
             try:
-                filename = f'./feet/{deposit.filename}'
-                await deposit.save(fp=filename)
+                output_folder = 'feet'
+                if not os.path.exists(output_folder):
+                    os.makedirs(output_folder)
+
+                output_file_path = os.path.join(output_folder, deposit.filename)
+                
+                await deposit.save(fp=output_file_path)
                 await ctx.send(f'your donation of `{deposit.filename}` is ***very*** appreciated', ephemeral=True)
                 print('FOOT DEPOSIT SUCCESSFUL')
             except Exception as error:
-                await ctx.send(f'Saving failed - Ping Happyllama25 with a screenshot of this error\n\n{error}', ephemeral=True)
+                await ctx.send(f'Saving failed - {error}', ephemeral=True)
 
 def setup(bot):
     bot.add_cog(Fun(bot))

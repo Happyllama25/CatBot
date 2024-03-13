@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv('config.env')
 from disnake.ext import commands
 
-API_KEY = os.getenv('API_KEY')
+PTERO_API_KEY = os.getenv('PTERODACTYL_API_KEY')
 
 
 
@@ -18,7 +18,7 @@ class Panel(commands.Cog):
 
         url = 'https://panel.happyllama25.net/api/client'
         headers = {
-            "Authorization": f"Bearer {API_KEY}",
+            "Authorization": f"Bearer {PTERO_API_KEY}",
             "Accept": "application/json"
         }
 
@@ -53,7 +53,7 @@ class Panel(commands.Cog):
         #Query for resources API (status, uptime, memory usage, etc)
         url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/resources'
         headers = {
-            "Authorization": f"Bearer {API_KEY}",
+            "Authorization": f"Bearer {PTERO_API_KEY}",
             "Accept": "application/json"
         }
 
@@ -119,7 +119,7 @@ class Panel(commands.Cog):
                 message = await ctx.followup.send('Sending restart request...')
                 url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
-                    "Authorization": f"Bearer {API_KEY}",
+                    "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
                 }
                 payload = {'signal': 'restart'}
@@ -135,7 +135,7 @@ class Panel(commands.Cog):
                 message = await ctx.followup.send('Sending stop request...')
                 url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
-                    "Authorization": f"Bearer {API_KEY}",
+                    "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
                 }
                 payload = {'signal': 'stop'}
@@ -181,7 +181,7 @@ class Panel(commands.Cog):
                 message = await ctx.followup.send('Sending start request...')
                 url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
-                    "Authorization": f"Bearer {API_KEY}",
+                    "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
                 }
                 payload = {'signal': 'start'}
@@ -230,7 +230,7 @@ class Panel(commands.Cog):
                 message = await ctx.followup.send('Sending restart request...')
                 url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
-                    "Authorization": f"Bearer {API_KEY}",
+                    "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
                 }
                 payload = {'signal': 'restart'}
@@ -246,7 +246,7 @@ class Panel(commands.Cog):
                 message = await ctx.followup.send('Sending stop request...')
                 url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
                 headers = {
-                    "Authorization": f"Bearer {API_KEY}",
+                    "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
                 }
                 payload = {'signal': 'stop'}

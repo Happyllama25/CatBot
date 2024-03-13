@@ -51,7 +51,7 @@ class Ytdownload(commands.Cog):
 
             await self.send_video(ctx, video_file, video_title)
         except Exception as e:
-            await ctx.send(content=f"An error occurred: {e}")
+            await ctx.send(content=f"An error occurred:\n```ansi\n{e}\n```")
         finally:
             self.download_in_progress = False
             if os.path.exists(video_file):
