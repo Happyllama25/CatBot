@@ -37,7 +37,7 @@ class Ytdownload(commands.Cog):
     @commands.slash_command(name="download", description="Download a YouTube video")
     async def download(self, ctx, url: str = commands.Param(name='url', description="The URL to the video (Also works with tiktok and some* other video hosts)"), quality: str = commands.Param(default="best", choices={"Best Audio+Video": "best", "Best Audio": "bestaudio", "Best Video": "bestvideo", "Worst Audio+Video": "worst", "Worst Audio": "worstaudio", "Worst Video": "worstvideo"}, name="quality", description="Defaults to Best Audio + Video")):
         if self.download_in_progress:
-            await ctx.send(content="A download is already in progress. Please wait for it to finish.")
+            await ctx.send(content="A download is already in progress (only one can be downloaded at a time)")
             return
 
         await ctx.response.defer()
@@ -139,7 +139,7 @@ class Ytdownload(commands.Cog):
 
             await ctx.edit_original_response(content=f"Uploading {upload_filename} ({size:.2f} MB)...")
             with open(video_file, 'rb') as fp:
-                await ctx.send(file=disnake.File(fp, upload_filename))
+                await ctx.edit_original_response(content=f"Uploading {upload_filename} ({size:.2f} MB)...", file=disnake.File(fp, upload_filename))
             os.remove(video_file)
         except Exception as e:
             logging.error(f"Error in sending video: {e}")
