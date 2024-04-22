@@ -36,11 +36,18 @@ class Ytdownload(commands.Cog):
 
     @commands.slash_command(name="download", description="Download a YouTube video")
     async def download(self, ctx, url: str = commands.Param(name='url', description="The URL to the video (Also works with tiktok and some* other video hosts)"), quality: str = commands.Param(default="best", choices={"Best Audio+Video": "best", "Best Audio": "bestaudio", "Best Video": "bestvideo", "Worst Audio+Video": "worst", "Worst Audio": "worstaudio", "Worst Video": "worstvideo"}, name="quality", description="Defaults to Best Audio + Video")):
-        if self.download_in_progress:
-            await ctx.send(content="A download is already in progress (only one can be downloaded at a time)")
-            return
-
         await ctx.response.defer()
+        if self.download_in_progress:
+            count = 0
+            await ctx.edit_original_response(content="Queued download - 0/15")
+            while self.download_in_progress and count < 15:
+                count += 1
+                await ctx.edit_original_response(content=f"Queued download - {count}/15")
+                await asyncio.sleep(4)
+                if count == 15:
+                    await ctx.edit_original_response(content=f"Queue wait reached, plis try again 🐦🔥")
+                    return
+
         self.download_in_progress = True
 
         try:
