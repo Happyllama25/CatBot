@@ -258,9 +258,9 @@ class Utilities(commands.Cog):
 
         await inter.send(f"Added note: {note}")
         
-    @commands.slash_command(name="restart", description="Restarts the bot")
-    async def restart(self, ctx):
-        await ctx.send("Restarting the bot...")
+    @commands.slash_command(name="kys", description="Restarts the bot")
+    async def kys(self, ctx):
+        await ctx.send("Yes master, whatever you desire\nhttps://tenor.com/view/death-cat-falls-over-gif-17605935280907017193")
         os._exit(0)
 
     @commands.slash_command(name="info", description="Get server or user info")
