@@ -5,7 +5,8 @@ load_dotenv('config.env')
 from disnake.ext import commands
 
 PTERO_API_KEY = os.getenv('PTERODACTYL_API_KEY')
-
+ptero_url = os.getenv('pterodactylURL')
+url = f'{ptero_url}/api/client'
 
 
 class Panel(commands.Cog):
@@ -16,12 +17,10 @@ class Panel(commands.Cog):
     async def servers(self, ctx):
         await ctx.send('Requesting data...')
 
-        url = 'https://panel.happyllama25.net/api/client'
         headers = {
             "Authorization": f"Bearer {PTERO_API_KEY}",
             "Accept": "application/json"
         }
-
 
         data = requests.get(url, headers=headers, timeout=10)
         server_names = []
@@ -47,11 +46,9 @@ class Panel(commands.Cog):
 
     @commands.slash_command(name = "status", description="Status for server ID (Used with /servers)")
     async def status(self, ctx, identifier:str):
-        if identifier == '4529cae6' and ctx.author != self.bot.owner:
-            await ctx.send('This is main catbot, only issue restarts if needed, not shutdowns as only the panel can start it again')
         await ctx.send("Querying node...")
         #Query for resources API (status, uptime, memory usage, etc)
-        url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/resources'
+        url = f'{url}/servers/{identifier}/resources'
         headers = {
             "Authorization": f"Bearer {PTERO_API_KEY}",
             "Accept": "application/json"
@@ -68,7 +65,7 @@ class Panel(commands.Cog):
         await ctx.edit_original_response(content="Querying panel...")
 
         #Query for name, allocation, port
-        url_name = f'https://panel.happyllama25.net/api/client/servers/{identifier}'
+        url_name = f'{url}/servers/{identifier}'
         dataname = requests.get(url_name, headers=headers, timeout=10)
         name = dataname.json()['attributes']['name']
 
@@ -117,7 +114,7 @@ class Panel(commands.Cog):
             if str(reaction.emoji) == "🟡":
                 print('yellow')
                 message = await ctx.followup.send('Sending restart request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
+                url = f'{url}/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
@@ -133,7 +130,7 @@ class Panel(commands.Cog):
             if str(reaction.emoji) == "🔴":
                 print('red')
                 message = await ctx.followup.send('Sending stop request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
+                url = f'{url}/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
@@ -179,7 +176,7 @@ class Panel(commands.Cog):
 
             if str(reaction.emoji) == "🟢":
                 message = await ctx.followup.send('Sending start request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
+                url = f'{url}/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
@@ -228,7 +225,7 @@ class Panel(commands.Cog):
             if str(reaction.emoji) == "🟡":
                 print('yellow')
                 message = await ctx.followup.send('Sending restart request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
+                url = f'{url}/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
@@ -244,7 +241,7 @@ class Panel(commands.Cog):
             if str(reaction.emoji) == "🔴":
                 print('red')
                 message = await ctx.followup.send('Sending stop request...')
-                url = f'https://panel.happyllama25.net/api/client/servers/{identifier}/power'
+                url = f'{url}/servers/{identifier}/power'
                 headers = {
                     "Authorization": f"Bearer {PTERO_API_KEY}",
                     "Accept": "application/json"
