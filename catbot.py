@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 TOKEN = os.getenv('DIS_TOKEN')
-extensions = ['cogs.tts', 'cogs.Titanfall','cogs.Gpt', 'cogs.Fun', 'cogs.Uptime', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.Ytdownload', 'cogs.Utilities']
+extensions = ['cogs.tts', 'cogs.Titanfall', 'cogs.Fun', 'cogs.Uptime', 'cogs.Panel', 'cogs.AdminCommands', 'cogs.Ytdownload', 'cogs.Utilities']
 
 
 watchingStatus = [
@@ -41,6 +41,7 @@ bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'), intents=disna
 async def on_ready():
     await bot.change_presence(activity=disnake.Activity(type=disnake.ActivityType.watching, name='Bot Started!'))
     print('Ready!')
+    await asyncio.sleep(2.5)
     await bot.loop.create_task(status_cycle())
 
 
