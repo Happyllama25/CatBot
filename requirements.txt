@@ -1,10 +1,10 @@
-disnake==2.8.1
-disnake[voice]==2.8.1
-python-dotenv==1.0.0
+disnake==2.9.1
+disnake[voice]==2.9.1
+python-dotenv==1.0.1
 requests==2.31.0
-openai==0.27.2
-azure-cognitiveservices.speech==1.29.0
+openai==1.26.0
+azure-cognitiveservices.speech==1.37.0
 azure-ai-vision==0.13.0b1
-yt-dlp==2023.11.16
+yt-dlp==2024.4.9
 qrcode[pil]==7.4.2
-elevenlabs==0.2.26
+elevenlabs==1.2.1
