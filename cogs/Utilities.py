@@ -227,36 +227,36 @@ class Utilities(commands.Cog):
 
         await inter.send(message)
 
-    @commands.slash_command(name="note", description="Note something down for later")
-    async def note(self, inter, note: str = None):
-        if not note:
-            with open("notes.json", "r") as file:
-                data = json.load(file)
+    # @commands.slash_command(name="note", description="Note something down for later")
+    # async def note(self, inter, note: str = None):
+    #     if not note:
+    #         with open("notes.json", "r") as file:
+    #             data = json.load(file)
 
-            for note in data:
-                content = note["note"]
-                author = note["author"]
-                author_id = note["author_id"]
-                time = note["time"]
+    #         for note in data:
+    #             content = note["note"]
+    #             author = note["author"]
+    #             author_id = note["author_id"]
+    #             time = note["time"]
             
 
 
 
-            return
-        with open("notes.json", "r") as file:
-            data = json.load(file)
+    #         return
+    #     with open("notes.json", "r") as file:
+    #         data = json.load(file)
 
-        data.append({
-            "note": note,
-            "author": inter.author.display_name,
-            "author_id": str(inter.author.id),
-            "time": str(datetime.now())
-        })
+    #     data.append({
+    #         "note": note,
+    #         "author": inter.author.display_name,
+    #         "author_id": str(inter.author.id),
+    #         "time": str(datetime.now())
+    #     })
 
-        with open("notes.json", "w") as file:
-            json.dump(data, file, indent=4)
+    #     with open("notes.json", "w") as file:
+    #         json.dump(data, file, indent=4)
 
-        await inter.send(f"Added note: {note}")
+    #     await inter.send(f"Added note: {note}")
         
     @commands.slash_command(name="kys", description="Restarts the bot")
     async def kys(self, ctx):
