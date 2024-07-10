@@ -43,7 +43,7 @@ class Ytdownload(commands.Cog):
             while self.download_in_progress and count < 15:
                 count += 1
                 await ctx.edit_original_response(content=f"Queued download - {count}/15")
-                await asyncio.sleep(4)
+                await asyncio.sleep(10)
                 if count == 15:
                     await ctx.edit_original_response(content=f"Queue wait reached, plis try again 🐦🔥")
                     return
@@ -102,7 +102,7 @@ class Ytdownload(commands.Cog):
     async def ytdl_progress_hook(self, ctx, status):
         async with self.lock:
             current_time = time.time()
-            if status.get('status') == 'downloading' and current_time - self.last_update > 1:
+            if status.get('status') == 'downloading' and current_time - self.last_update > 3:
                 filename = os.path.basename(status['filename'])
                 percent = status.get('_percent_str', 'N/A')
                 eta = status.get('_eta_str', 'N/A')
@@ -122,7 +122,7 @@ class Ytdownload(commands.Cog):
         RESET = "\u001b[0m"
 
         current_time = time.time()
-        if current_time - self.last_update > 1:
+        if current_time - self.last_update > 3:
             # Append the animated, blue character to the message
             animated_message = f"```ansi\n{message}\n\n{BLUE}{animation_char}{RESET}```"
             await ctx.edit_original_response(content=animated_message)
@@ -145,8 +145,8 @@ class Ytdownload(commands.Cog):
             upload_filename = f"{video_title}{file_extension}"
 
             await ctx.edit_original_response(content=f"Uploading {upload_filename} ({size:.2f} MB)...")
-            with open(video_file, 'rb') as fp:
-                await ctx.edit_original_response(content=f"Uploading {upload_filename} ({size:.2f} MB)...", file=disnake.File(fp, upload_filename))
+
+            await ctx.edit_original_response(content=f"", file=disnake.File(open(video_file, 'rb'), upload_filename))
             os.remove(video_file)
         except Exception as e:
             logging.error(f"Error in sending video: {e}")
@@ -167,7 +167,7 @@ class Ytdownload(commands.Cog):
             '-b:v', str(target_bitrate) + 'k', '-progress', '-', '-pass', '1', '-an', '-f', 'mp4', '/dev/null'
         ]
 
-        await self.run_ffmpeg(ctx, first_pass_cmd, "Analysing video (1/2)")
+        await self.run_ffmpeg(ctx, first_pass_cmd, "Analysing video (1/2) - if very big video it'll probably not work, do /kys to restart if its frozen")
 
         output_file = str(video_file_path.stem) + "_compressed.mp4"
         second_pass_cmd = [
@@ -175,7 +175,7 @@ class Ytdownload(commands.Cog):
             '-b:v', str(target_bitrate) + 'k', '-progress', '-', '-nostats', '-pass', '2', '-c:a', 'aac', '-b:a', '128k', output_file
         ]
 
-        await self.run_ffmpeg(ctx, second_pass_cmd, "Compressing video (2/2)")
+        await self.run_ffmpeg(ctx, second_pass_cmd, "Compressing video (2/2) - if very big video it'll probably not work, do /kys to restart")
 
         return Path(output_file)
     
@@ -200,17 +200,15 @@ class Ytdownload(commands.Cog):
                 frame_number = progress_data.get('frame', '...')
                 fps = progress_data.get('fps', '...')
                 bitrate = progress_data.get('bitrate', '...')
-                time_str = progress_data.get('out_time', '...').split('.')[0]
                 speed = progress_data.get('speed', '...')
 
                 progress_description = f"\u001b[1;37m{pass_description}"
-                progress_time = f"\u001b[1;37mTime: {YELLOW}{time_str}"
                 progress_bitrate = f"\u001b[1;37mBitrate: {YELLOW}{bitrate}"
                 progress_frame = f"\u001b[1;37mFrame: {YELLOW}{frame_number}"
                 progress_fps = f"\u001b[1;37mFPS: {YELLOW}{fps}"
                 progress_speed = f"\u001b[1;37mSpeed: {YELLOW}{speed}"
 
-                message = f"{progress_description}\n\n{progress_time}\n{progress_bitrate}\n{progress_frame}\n{progress_fps}\n{progress_speed}"
+                message = f"{progress_description}\n\n{progress_bitrate}\n{progress_frame}\n{progress_fps}\n{progress_speed}"
 
                 # Send the message
                 await self.update_progress_message(ctx, message)
