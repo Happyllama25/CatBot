@@ -23,6 +23,16 @@ class Utilities(commands.Cog):
                 json.dump([], file)
 
 
+    @commands.slash_command(name="suggest", description="Suggest a feature for this bot!")
+    async def suggest(self, ctx, message: str = commands.Param(name="suggestion", description="Your suggestion or message for the dev!")):
+        owner = await self.bot.fetch_user(self.bot.owner_id)
+        if owner:
+            await owner.send(f"Suggestion from {ctx.author.mention}: {message}")
+            await ctx.send("Your suggestion has been sent to the bot owner!")
+        else:
+            await ctx.send("Sorry, I couldn't find the bot owner to send your suggestion.")
+
+
     @commands.slash_command(
         name="generate_qr",
         description="Generates a QR code from the provided input with Minecraft colors."
@@ -227,36 +237,6 @@ class Utilities(commands.Cog):
 
         await inter.send(message)
 
-    # @commands.slash_command(name="note", description="Note something down for later")
-    # async def note(self, inter, note: str = None):
-    #     if not note:
-    #         with open("notes.json", "r") as file:
-    #             data = json.load(file)
-
-    #         for note in data:
-    #             content = note["note"]
-    #             author = note["author"]
-    #             author_id = note["author_id"]
-    #             time = note["time"]
-            
-
-
-
-    #         return
-    #     with open("notes.json", "r") as file:
-    #         data = json.load(file)
-
-    #     data.append({
-    #         "note": note,
-    #         "author": inter.author.display_name,
-    #         "author_id": str(inter.author.id),
-    #         "time": str(datetime.now())
-    #     })
-
-    #     with open("notes.json", "w") as file:
-    #         json.dump(data, file, indent=4)
-
-    #     await inter.send(f"Added note: {note}")
         
     @commands.slash_command(name="kys", description="Restarts the bot")
     async def kys(self, ctx):
