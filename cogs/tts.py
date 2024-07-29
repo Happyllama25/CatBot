@@ -1,4 +1,5 @@
 from disnake.ext import commands
+from elevenlabs import Voice
 from elevenlabs.client import AsyncElevenLabs
 import disnake
 import asyncio
@@ -34,7 +35,7 @@ class TTSCog(commands.Cog):
             # Await the coroutine to get the async generator
             audio_generator = await client.generate(
                 text=message,
-                voice="Adam",
+                voice=Voice(voice_id="pNInz6obpgDQGcFmaJgB"),
                 model="eleven_multilingual_v2",
                 stream=True
             )
