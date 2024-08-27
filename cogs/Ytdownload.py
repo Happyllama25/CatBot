@@ -47,10 +47,11 @@ class YouTubeDownloader(commands.Cog):
         option: str = commands.Param(choices=["video+audio", "audio"], default="video+audio"),
         quality: str = commands.Param(choices=["highest", "regular", "lowest available"], default="regular")
     ):
-        message = await ctx.send(f"Starting download...")
+        await ctx.defer()
+        await ctx.edit_original_response(f"Starting download...")
         try:
             throbber = ['⡿','⣟','⣯','⣷','⣾','⣽','⣻','⢿']
-            throbber_task = asyncio.create_task(self.loading_throbber(message, throbber))
+            throbber_task = asyncio.create_task(self.loading_throbber(ctx, throbber))
 
 
             # Set initial format options based on user selection
@@ -102,13 +103,13 @@ class YouTubeDownloader(commands.Cog):
                 await self.handle_upload(ctx, file_path, info_dict)
         except Exception as e:
             await throbber_task  # Ensure the throbber stops
-            await message.edit(f"An error occurred: {str(e)}\n\nTry again?")
+            await ctx.edit_original_response(f"An error occurred: {str(e)}\n\nTry again?")
             print(e)
         
-    async def loading_throbber(self, message, throbber):
+    async def loading_throbber(self, ctx, throbber):
         i = 0
         while True:
-            await message.edit(content=f"Downloading... {throbber[i % len(throbber)]}")
+            await ctx.edit_original_response(content=f"Downloading... {throbber[i % len(throbber)]}")
             i += 1
             await asyncio.sleep(1)
 
