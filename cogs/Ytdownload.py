@@ -53,7 +53,6 @@ class YouTubeDownloader(commands.Cog):
             throbber = ['⡿','⣟','⣯','⣷','⣾','⣽','⣻','⢿']
             throbber_task = asyncio.create_task(self.loading_throbber(ctx, throbber))
 
-
             # Set initial format options based on user selection
             ydl_opts = {
                 'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title).30s.%(ext)s'),
@@ -61,51 +60,55 @@ class YouTubeDownloader(commands.Cog):
                 'noplaylist': True,
             }
 
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(url, download=False)
-                formats = info_dict.get('formats', [info_dict])
+            # Run yt-dlp in a separate thread to avoid blocking the main async loop
+            info_dict = await asyncio.to_thread(self.run_yt_dlp, ydl_opts, url, option, quality)
+            file_path = os.path.join(DOWNLOAD_FOLDER, info_dict.get('title', 'unknown').replace(' ', '_') + '.' + info_dict.get('ext', 'mp4'))
 
-                best_format = None
+            await throbber_task
 
-                if quality == "lowest available":
-                    # Find the lowest quality format
-                    best_format = min(
-                        (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
-                        key=lambda f: f.get('filesize', float('inf')),
-                        default=None
-                    )
-                elif quality == "highest":
-                    # Find the highest quality format
-                    best_format = max(
-                        (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
-                        key=lambda f: f.get('filesize', float('-inf')),
-                        default=None
-                    )
-                elif quality == "regular":
-                    # Find the best format under 1080p or highest quality audio
-                    for f in formats:
-                        if f.get('filesize') and f.get('ext') == 'mp4' and f['height'] <= 1080:
-                            best_format = f['format_id']
-                            break
-                    if not best_format:
-                        best_format = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
-
-                if best_format:
-                    ydl_opts['format'] = best_format if isinstance(best_format, str) else best_format['format_id']
-                else:
-                    ydl_opts['format'] = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
-
-                info_dict = ydl.extract_info(url, download=True)
-                file_path = ydl.prepare_filename(info_dict)
-
-                await throbber_task
-
-                await self.handle_upload(ctx, file_path, info_dict)
+            await self.handle_upload(ctx, file_path, info_dict)
         except Exception as e:
             await throbber_task  # Ensure the throbber stops
             await ctx.edit_original_response(f"An error occurred: {str(e)}\n\nTry again?")
             print(e)
         
+
+    def run_yt_dlp(self, ydl_opts, url, option, quality):
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(url, download=False)
+            formats = info_dict.get('formats', [info_dict])
+
+            best_format = None
+
+            if quality == "lowest available":
+                best_format = min(
+                    (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
+                    key=lambda f: f.get('filesize', float('inf')),
+                    default=None
+                )
+            elif quality == "highest":
+                best_format = max(
+                    (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
+                    key=lambda f: f.get('filesize', float('-inf')),
+                    default=None
+                )
+            elif quality == "regular":
+                for f in formats:
+                    if f.get('filesize') and f.get('ext') == 'mp4' and f['height'] <= 1080:
+                        best_format = f['format_id']
+                        break
+                if not best_format:
+                    best_format = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
+
+            if best_format:
+                ydl_opts['format'] = best_format if isinstance(best_format, str) else best_format['format_id']
+            else:
+                ydl_opts['format'] = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
+
+            info_dict = ydl.extract_info(url, download=True)
+            return info_dict
+
+    
     async def loading_throbber(self, ctx, throbber):
         i = 0
         while True:
