@@ -56,10 +56,6 @@
             margin-bottom: 0.5em;
             font-size: 3em;
             color: #FFFFFF;
-            background-color: #4d025a;
-            border-radius: 15px;
-            border: 2px solid #4d025a;
-            cursor: pointer;
         }
 
         p {
@@ -96,7 +92,7 @@
         <div class="meow-box" onclick="meowClick()">meow</div>
         <p>yer can click thee button below<br>to download <b>{{ file_ID }}</b></p>
         <a href="/media/{{ file_ID }}" class="download-button">Download</a>
-        <h4 class="disclaimer">will expire after 5 days</h4>
+        <h4 class="disclaimer">will expire 24 days after creation</h4>
     </div>
 
     <audio id="meow1" src="{{ url_for('static', filename='media/meow1.mp3') }}"></audio>
