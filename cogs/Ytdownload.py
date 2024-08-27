@@ -48,81 +48,69 @@ class YouTubeDownloader(commands.Cog):
         quality: str = commands.Param(choices=["highest", "regular", "lowest available"], default="regular")
     ):
         message = await ctx.send(f"Starting download...")
+        try:
+            throbber = ['⡿','⣟','⣯','⣷','⣾','⣽','⣻','⢿']
+            throbber_task = asyncio.create_task(self.loading_throbber(message, throbber))
 
-        start_time = time.time()
-        last_update_time = 0
 
-        # Set initial format options based on user selection
-        ydl_opts = {
-            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title).30s.%(ext)s'),
-            'restrictfilenames': True,
-            'noplaylist': True,
-            'progress_hooks': [lambda d: self.progress_hook(d, ctx, message, start_time, last_update_time)],
-        }
+            # Set initial format options based on user selection
+            ydl_opts = {
+                'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title).30s.%(ext)s'),
+                'restrictfilenames': True,
+                'noplaylist': True,
+            }
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=False)
-            formats = info_dict.get('formats', [info_dict])
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(url, download=False)
+                formats = info_dict.get('formats', [info_dict])
 
-            best_format = None
+                best_format = None
 
-            if quality == "lowest available":
-                # Find the lowest quality format
-                best_format = min(
-                    (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
-                    key=lambda f: f.get('filesize', float('inf')),
-                    default=None
-                )
-            elif quality == "highest":
-                # Find the highest quality format
-                best_format = max(
-                    (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
-                    key=lambda f: f.get('filesize', float('-inf')),
-                    default=None
-                )
-            elif quality == "regular":
-                # Find the best format under 1080p or highest quality audio
-                for f in formats:
-                    if f.get('filesize') and f.get('ext') == 'mp4' and f['height'] <= 1080:
-                        best_format = f['format_id']
-                        break
-                if not best_format:
-                    best_format = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
-
-            if best_format:
-                ydl_opts['format'] = best_format if isinstance(best_format, str) else best_format['format_id']
-            else:
-                ydl_opts['format'] = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
-
-            info_dict = ydl.extract_info(url, download=True)
-            file_path = ydl.prepare_filename(info_dict)
-            await self.handle_upload(ctx, file_path, info_dict)
-
-    async def progress_hook(self, d, ctx, message, start_time, last_update_time):
-        if d['status'] == 'downloading':
-            current_time = time.time()
-            if current_time - last_update_time >= 2:  # Update every 2 seconds
-                downloaded = d.get('downloaded_bytes', 0)
-                total_size = d.get('total_bytes', d.get('total_bytes_estimate', 0))
-                speed = d.get('speed', 0)
-
-                if total_size and speed:
-                    time_remaining = (total_size - downloaded) / speed
-                    percent_complete = downloaded / total_size * 100
-                    await message.edit(
-                        content=(
-                            f"Downloading... {percent_complete:.2f}% complete. "
-                            f"Size: {downloaded / 1024 / 1024:.2f}/{total_size / 1024 / 1024:.2f} MB. "
-                            f"Speed: {speed / 1024 / 1024:.2f} MB/s. "
-                            f"ETA: {time_remaining:.2f} seconds."
-                        )
+                if quality == "lowest available":
+                    # Find the lowest quality format
+                    best_format = min(
+                        (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
+                        key=lambda f: f.get('filesize', float('inf')),
+                        default=None
                     )
-                last_update_time = current_time
+                elif quality == "highest":
+                    # Find the highest quality format
+                    best_format = max(
+                        (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
+                        key=lambda f: f.get('filesize', float('-inf')),
+                        default=None
+                    )
+                elif quality == "regular":
+                    # Find the best format under 1080p or highest quality audio
+                    for f in formats:
+                        if f.get('filesize') and f.get('ext') == 'mp4' and f['height'] <= 1080:
+                            best_format = f['format_id']
+                            break
+                    if not best_format:
+                        best_format = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
 
-        elif d['status'] == 'finished':
-            await message.edit(content="Download completed.")
+                if best_format:
+                    ydl_opts['format'] = best_format if isinstance(best_format, str) else best_format['format_id']
+                else:
+                    ydl_opts['format'] = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
 
+                info_dict = ydl.extract_info(url, download=True)
+                file_path = ydl.prepare_filename(info_dict)
 
+                await throbber_task
+
+                await self.handle_upload(ctx, file_path, info_dict)
+        except Exception as e:
+            await throbber_task  # Ensure the throbber stops
+            await message.edit(f"An error occurred: {str(e)}\n\nTry again?")
+            print(e)
+        
+    async def loading_throbber(self, message, throbber):
+        i = 0
+        while True:
+            await message.edit(content=f"Downloading... {throbber[i % len(throbber)]}")
+            i += 1
+            await asyncio.sleep(1)
 
     async def handle_upload(self, ctx, file_path, info_dict):
         file_size = os.path.getsize(file_path)
