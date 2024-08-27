@@ -54,7 +54,7 @@ class YouTubeDownloader(commands.Cog):
 
         # Set initial format options based on user selection
         ydl_opts = {
-            'outtmpl': os.path.join(self.DOWNLOAD_FOLDER, '%(title).30s.%(ext)s'),
+            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title).30s.%(ext)s'),
             'restrictfilenames': True,
             'noplaylist': True,
             'progress_hooks': [lambda d: self.progress_hook(d, ctx, message, start_time, last_update_time)],
