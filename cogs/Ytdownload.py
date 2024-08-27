@@ -20,7 +20,7 @@ def download_file(file_ID):
 @flask_app.route('/media/<file_ID>')
 def serve_file(file_ID):
     try:
-        return send_from_directory("downloads", file_ID, as_attachment=True)
+        return send_from_directory(DOWNLOAD_FOLDER, file_ID, as_attachment=True)
     except FileNotFoundError:
         abort(404)
 
