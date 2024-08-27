@@ -25,16 +25,17 @@ def serve_file(file_ID):
         abort(404)
 
 def run_flask_app():
-    flask_app.run(port=PORT, use_reloader=False)  # use_reloader=False to prevent Flask from restarting the app
+    flask_app.run(port=PORT, use_reloader=False)
 
 class YouTubeDownloader(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.cleanup.start()
-        self.external_ip = "smol-ash.happyllama25.net"  # Set this to your server's external IP or domain
+        self.external_ip = "smol-ash.happyllama25.net"
         
         # Start Flask app in a separate thread
         flask_thread = Thread(target=run_flask_app)
+        flask_thread.daemon = True  
         flask_thread.start()
 
     @commands.slash_command()
