@@ -1,237 +1,104 @@
 import disnake
-from disnake.ext import commands
+from disnake.ext import commands, tasks
 import yt_dlp
 import os
-import logging
-import re
 import asyncio
-import time
-import subprocess
-from pathlib import Path
+from datetime import datetime
+from flask import Flask, send_from_directory, abort, render_template, url_for
+from threading import Thread
 
+# Configuration
+DOWNLOAD_FOLDER = os.path.join(os.getcwd(), "downloads")
+PORT = 8129  # Make sure to use the same port in the URL generation
 
-RED = "\033[31m"
-GREEN = "\033[32m"
-YELLOW = "\033[33m"
-MAGENTA = "\033[35m"
-CYAN = "\033[36m"
-RESET = "\033[0m"
+flask_app = Flask(__name__)
 
-class MyLogger(object):
-    def debug(self, msg):
-        pass
+@flask_app.route('/downloads/<file_ID>')
+def download_file(file_ID):
+    return render_template('index.html', file_ID=file_ID)
 
-    def warning(self, msg):
-        pass
+@flask_app.route('/media/<file_ID>')
+def serve_file(file_ID):
+    try:
+        return send_from_directory("downloads", file_ID, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
 
-    def error(self, msg):
-        print(msg)
+def run_flask_app():
+    flask_app.run(port=PORT, use_reloader=False)  # use_reloader=False to prevent Flask from restarting the app
 
-class Ytdownload(commands.Cog):
+class YouTubeDownloader(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.download_in_progress = False
-        self.last_update = 0
-        self.lock = asyncio.Lock()
+        self.cleanup.start()
+        self.external_ip = "smol-ash.happyllama25.net"  # Set this to your server's external IP or domain
+        
+        # Start Flask app in a separate thread
+        flask_thread = Thread(target=run_flask_app)
+        flask_thread.start()
 
-    @commands.slash_command(name="download", description="Download a YouTube video")
-    async def download(self, ctx, url: str = commands.Param(name='url', description="The URL to the video (Also works with tiktok and some* other video hosts)"), quality: str = commands.Param(default="best", choices={"Best Audio+Video": "best", "Best Audio": "bestaudio", "Best Video": "bestvideo", "Worst Audio+Video": "worst", "Worst Audio": "worstaudio", "Worst Video": "worstvideo"}, name="quality", description="Defaults to Best Audio + Video")):
-        await ctx.response.defer()
-        if self.download_in_progress:
-            count = 0
-            await ctx.edit_original_response(content="Queued download - 0/15")
-            while self.download_in_progress and count < 15:
-                count += 1
-                await ctx.edit_original_response(content=f"Queued download - {count}/15")
-                await asyncio.sleep(10)
-                if count == 15:
-                    await ctx.edit_original_response(content=f"Queue wait reached, plis try again 🐦🔥")
-                    return
+    @commands.slash_command()
+    async def download(self, ctx, url: str, option: str = "video+audio"):
+        await ctx.send(f"Starting download for {url} with option {option}")
 
-        self.download_in_progress = True
-
-        try:
-            video_file, video_title = await self.download_video(ctx, url, quality)
-            print("Looking for video file:", video_file)
-            if not os.path.exists(video_file):
-                raise FileNotFoundError("Downloaded video file not found on disk.")
-
-            await self.send_video(ctx, video_file, video_title)
-        except Exception as e:
-            await ctx.send(content=f"An error occurred:\n```ansi\n{e}\n```")
-        finally:
-            self.download_in_progress = False
-            if os.path.exists(video_file):
-                os.remove(video_file)
-
-
-    async def download_video(self, ctx, url, quality):
         ydl_opts = {
-            'logger': MyLogger(),
-            'progress_hooks': [lambda status: self.bot.loop.create_task(self.ytdl_progress_hook(ctx, status))],
-            'outtmpl': './output/downloaded_file.%(ext)s',
-            'format': quality
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
+            'restrictfilenames': True,
+            'noplaylist': True,
         }
 
-        if "audio" in quality:
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-            }]
-        else:
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',
-            }]
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = await asyncio.to_thread(ydl.extract_info, url, download=True)
-            base_path = './output/downloaded_file'
-            video_title = info_dict.get('title')
+            info_dict = ydl.extract_info(url, download=False)
+            formats = info_dict.get('formats', [info_dict])
 
+            best_format = None
+            for f in formats:
+                if f.get('filesize') and f['filesize'] < 25 * 1024 * 1024 and f.get('ext') == 'mp4':
+                    best_format = f['format_id']
+                    break
+            if not best_format:
+                best_format = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
 
-            for ext in ['mp4', 'mp3']:
-                potential_path = f'{base_path}.{ext}'
-                if os.path.exists(potential_path):
-                    return potential_path, video_title
+            ydl_opts['format'] = best_format
+            info_dict = ydl.extract_info(url, download=True)
+            file_path = ydl.prepare_filename(info_dict)
+            await self.handle_upload(ctx, file_path, info_dict)
 
-            original_path = ydl.prepare_filename(info_dict)
-            return original_path, video_title
+    async def handle_upload(self, ctx, file_path, info_dict):
+        file_size = os.path.getsize(file_path)
+        url = f"http://{self.external_ip}:{PORT}/downloads/{os.path.basename(file_path)}"
+        if file_size < 25 * 1024 * 1024:
+            await ctx.send(content=f"{url}", file=disnake.File(file_path))
+        else:
+            await ctx.send(f"[Click here to download the file]({url})")
 
+        self.bot.loop.create_task(self.schedule_file_deletion(file_path, 24))
 
-    async def ytdl_progress_hook(self, ctx, status):
-        async with self.lock:
-            current_time = time.time()
-            if status.get('status') == 'downloading' and current_time - self.last_update > 3:
-                filename = os.path.basename(status['filename'])
-                percent = status.get('_percent_str', 'N/A')
-                eta = status.get('_eta_str', 'N/A')
-                progress = f"\u001b[1;37mDownloading: \u001b[0m{filename}\n\u001b[1;37mProgress: \u001b[0m{percent}\n\u001b[1;37mETA: \u001b[0m{eta}"
-                await self.update_progress_message(ctx, progress)
+    async def schedule_file_deletion(self, file_path, hours):
+        await asyncio.sleep(hours * 3600)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
-    async def update_progress_message(self, ctx, message):
-        # Define a set of Braille characters for the animation
-        animation_chars = ['⠋', '⠙', '⠸', '⠴', '⠦', '⠇']
-        
-        # Calculate the index for the next animation character
-        animation_index = int(time.time()) % len(animation_chars)
-        animation_char = animation_chars[animation_index]
+    async def delete_old_files(self):
+        now = datetime.now()
+        for root, dirs, files in os.walk(DOWNLOAD_FOLDER):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_time = datetime.fromtimestamp(os.path.getctime(file_path))
+                if (now - file_time).days >= 1:
+                    os.remove(file_path)
 
-        # ANSI escape code for blue text
-        BLUE = "\u001b[34m"
-        RESET = "\u001b[0m"
+    @tasks.loop(hours=1)
+    async def cleanup(self):
+        await self.delete_old_files()
 
-        current_time = time.time()
-        if current_time - self.last_update > 3:
-            # Append the animated, blue character to the message
-            animated_message = f"```ansi\n{message}\n\n{BLUE}{animation_char}{RESET}```"
-            await ctx.edit_original_response(content=animated_message)
-            self.last_update = current_time
-
-
-
-
-    async def send_video(self, ctx, video_file, video_title):
-        try:
-            
-            size = os.path.getsize(video_file) / 1024 / 1024  # Size in MB
-            if size > 25:
-                
-                video_file = await self.compress_file(ctx, video_file, 24)
-
-
-            size = os.path.getsize(video_file) / 1024 / 1024
-            file_extension = os.path.splitext(video_file)[1]
-            upload_filename = f"{video_title}{file_extension}"
-
-            await ctx.edit_original_response(content=f"Uploading {upload_filename} ({size:.2f} MB)...")
-
-            await ctx.edit_original_response(content=f"", file=disnake.File(open(video_file, 'rb'), upload_filename))
-            os.remove(video_file)
-        except Exception as e:
-            logging.error(f"Error in sending video: {e}")
-            await ctx.edit_original_response(content=f"An error occurred while sending the video: {e}")
-
-
-    async def compress_file(self, ctx, video_file, target_size_MB):
-        video_file_path = Path(video_file)
-        target_size_kb = target_size_MB * 1024
-        duration = self.get_video_duration(video_file)
-        if duration <= 0:
-            return video_file
-
-        target_bitrate = int((target_size_kb * 8) / duration) - 128
-
-        first_pass_cmd = [
-            'ffmpeg', '-y', '-i', video_file, '-c:v', 'libx264', '-preset', 'medium',
-            '-b:v', str(target_bitrate) + 'k', '-progress', '-', '-pass', '1', '-an', '-f', 'mp4', '/dev/null'
-        ]
-
-        await self.run_ffmpeg(ctx, first_pass_cmd, "Analysing video (1/2) - if very big video it'll probably not work, do /kys to restart if its frozen")
-
-        output_file = str(video_file_path.stem) + "_compressed.mp4"
-        second_pass_cmd = [
-            'ffmpeg', '-i', str(video_file_path), '-c:v', 'libx264', '-preset', 'medium',
-            '-b:v', str(target_bitrate) + 'k', '-progress', '-', '-nostats', '-pass', '2', '-c:a', 'aac', '-b:a', '128k', output_file
-        ]
-
-        await self.run_ffmpeg(ctx, second_pass_cmd, "Compressing video (2/2) - if very big video it'll probably not work, do /kys to restart")
-
-        return Path(output_file)
-    
-    async def run_ffmpeg(self, ctx, cmd, pass_description):
-        process = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-    )
-
-        progress_data = {}
-
-        while True:
-            line = await process.stdout.readline()
-            if not line:
-                break
-            line = line.decode().strip()
-
-            # Process each line if it contains an '=' character
-            if '=' in line:
-                key, value = line.split('=', 1)
-                progress_data[key] = value
-
-                frame_number = progress_data.get('frame', '...')
-                fps = progress_data.get('fps', '...')
-                bitrate = progress_data.get('bitrate', '...')
-                speed = progress_data.get('speed', '...')
-
-                progress_description = f"\u001b[1;37m{pass_description}"
-                progress_bitrate = f"\u001b[1;37mBitrate: {YELLOW}{bitrate}"
-                progress_frame = f"\u001b[1;37mFrame: {YELLOW}{frame_number}"
-                progress_fps = f"\u001b[1;37mFPS: {YELLOW}{fps}"
-                progress_speed = f"\u001b[1;37mSpeed: {YELLOW}{speed}"
-
-                message = f"{progress_description}\n\n{progress_bitrate}\n{progress_frame}\n{progress_fps}\n{progress_speed}"
-
-                # Send the message
-                await self.update_progress_message(ctx, message)
-
-        await process.wait()
-
-
-    def get_video_duration(self, video_file):
-        try:
-            result = subprocess.run(
-                ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', video_file],
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True
-            )
-            return float(result.stdout.decode('utf-8').strip())
-        except Exception as e:
-            logging.error(f"Error getting video duration: {e}")
-            return 0
-
-    def file_exists(self, file_path):
-        print("Current working directory:", os.getcwd())
-        print("Checking file path:", file_path)
-        return os.path.exists(file_path)
-    
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print(f"{self.__class__.__name__} cog is ready")
 
 def setup(bot):
-    bot.add_cog(Ytdownload(bot))
+    bot.add_cog(YouTubeDownloader(bot))
+
+if not os.path.exists(DOWNLOAD_FOLDER):
+    os.makedirs(DOWNLOAD_FOLDER)

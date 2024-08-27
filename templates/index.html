@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CatBot GiftBox</title>
+    <!-- dm me the word "carrots" -->
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        b {
+            color: #FFD700;
+        }
+
+        .gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #043f61, #4d025a);
+            background-size: 180% 180%;
+            animation: gradient-animation 6s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradient-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .content {
+            text-align: center;
+        }
+
+        .meow-box {
+            display: inline-block;
+            padding: 0.5em 1em;
+            margin-bottom: 0.5em;
+            font-size: 3em;
+            color: #FFFFFF;
+            background-color: #4d025a;
+            border-radius: 15px;
+            border: 2px solid #4d025a;
+            cursor: pointer;
+        }
+
+        p {
+            font-size: 1.5em;
+            margin-bottom: 2em;
+        }
+
+        .download-button {
+            padding: 1em 2em;
+            font-size: 1.5em;
+            color: white;
+            background-color: #673AB7;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: Arial, sans-serif;
+        }
+
+        .download-button:hover {
+            background-color: #e00f6a;
+            color: black
+        }
+
+        .disclaimer {
+            font-size: 1em;
+            margin-block-start: 2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient"></div>
+    <div class="content">
+        <div class="meow-box" onclick="meowClick()">meow</div>
+        <p>yer can click thee button below<br>to download <b>{{ file_ID }}</b></p>
+        <a href="/media/{{ file_ID }}" class="download-button">Download</a>
+        <h4 class="disclaimer">will expire after 5 days</h4>
+    </div>
+
+    <audio id="meow1" src="{{ url_for('static', filename='media/meow1.mp3') }}"></audio>
+    <audio id="meow2" src="{{ url_for('static', filename='media/meow2.mp3') }}"></audio>
+    <audio id="meow3" src="{{ url_for('static', filename='media/meow3.mp3') }}"></audio>
+    <audio id="meow4" src="{{ url_for('static', filename='media/meow4.mp3') }}"></audio>
+    <audio id="purreow1" src="{{ url_for('static', filename='media/purreow1.mp3') }}"></audio>
+    <audio id="purreow2" src="{{ url_for('static', filename='media/purreow2.mp3') }}"></audio>
+
+    <script>
+        let clickCount = 0;
+
+        function meowClick() {
+            clickCount++;
+            if (clickCount < 6) return;
+            if (clickCount % 6 === 0) {
+                const purrNum = Math.floor(Math.random() * 2) + 1;
+                document.getElementById(`purreow${purrNum}`).play();
+            } else {
+                const meowNum = Math.floor(Math.random() * 4) + 1;
+                document.getElementById(`meow${meowNum}`).play();
+            }
+        }
+    </script>
+</body>
+</html>

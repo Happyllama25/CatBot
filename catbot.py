@@ -80,6 +80,4 @@ try:
     bot.run(TOKEN)
 
 except Exception as error:
-    #print(type(TOKEN))
-    #print(TOKEN)
     print(f'Failed to start. \n\nInfo: {error}')
