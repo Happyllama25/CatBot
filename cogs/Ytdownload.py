@@ -47,7 +47,7 @@ class YouTubeDownloader(commands.Cog):
         option: str = commands.Param(choices=["video+audio", "audio"], default="video+audio"),
         quality: str = commands.Param(choices=["highest", "regular", "lowest available"], default="regular")
     ):
-        await ctx.defer()
+        await ctx.response.defer()
         await ctx.edit_original_response(f"Starting download...")
         try:
             throbber = ['⡿','⣟','⣯','⣷','⣾','⣽','⣻','⢿']
