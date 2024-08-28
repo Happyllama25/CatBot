@@ -61,8 +61,6 @@ class YouTubeDownloader(commands.Cog):
                 'noplaylist': True,
             }
 
-            # Start an asynchronous task to process progress updates
-            self.bot.loop.create_task(self.process_progress_updates(ctx))
 
             # Run yt-dlp in a separate thread
             loop = asyncio.get_event_loop()
