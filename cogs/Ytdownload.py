@@ -68,14 +68,14 @@ class YouTubeDownloader(commands.Cog):
             # Run yt-dlp in a separate thread
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as pool:
-                await loop.run_in_executor(pool, self.run_yt_dlp, ydl_opts, url, option, quality)
+                await loop.run_in_executor(pool, self.run_yt_dlp, ydl_opts, url, option, quality, ctx)
 
             await ctx.edit_original_response(content="Download completed.")
     
         except Exception as e:
             await ctx.send(f"An error occurred: {str(e)}")
 
-    def run_yt_dlp(self, ydl_opts, url, option, quality):
+    def run_yt_dlp(self, ydl_opts, url, option, quality, ctx):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(url, download=False)
             formats = info_dict.get('formats', [info_dict])
