@@ -59,7 +59,6 @@ class YouTubeDownloader(commands.Cog):
                 'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title).30s.%(ext)s'),
                 'restrictfilenames': True,
                 'noplaylist': True,
-                'progress_hooks': [lambda d: self.progress_hook(d, ctx)]  # Add the progress hook
             }
 
             # Start an asynchronous task to process progress updates
@@ -69,8 +68,6 @@ class YouTubeDownloader(commands.Cog):
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as pool:
                 await loop.run_in_executor(pool, self.run_yt_dlp, ydl_opts, url, option, quality, ctx)
-
-            await ctx.edit_original_response(content="Download completed.")
     
         except Exception as e:
             await ctx.send(f"An error occurred: {str(e)}")
@@ -112,24 +109,6 @@ class YouTubeDownloader(commands.Cog):
             self.handle_upload(ctx, downloaded_file_path, info_dict)
 
             return info_dict
-
-    def progress_hook(self, d, ctx):
-        if d['status'] == 'downloading':
-            self.progress_queue.put_nowait({
-                'percent': d['_percent_str'].strip(),
-                'speed': d['_speed_str'].strip(),
-                'eta': d['eta'] if d['eta'] else "N/A",
-                'ctx': ctx
-            })
-
-    async def process_progress_updates(self, ctx):
-        while True:
-            await asyncio.sleep(1)  # Process updates every second
-            if not self.progress_queue.empty():
-                update = self.progress_queue.get_nowait()
-                await ctx.edit_original_response(
-                    content=f"Downloading... {update['percent']} at {update['speed']} ETA: {update['eta']}s"
-                )
 
     def handle_upload(self, ctx, file_path, info_dict):
         file_size = os.path.getsize(file_path)
