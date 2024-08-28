@@ -5,7 +5,7 @@ import os
 import time
 import asyncio
 from datetime import datetime
-from flask import Flask, send_from_directory, abort, render_template, url_for
+from flask import Flask, send_from_directory, abort, render_template
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 
@@ -29,15 +29,12 @@ def serve_file(file_ID):
 def run_flask_app():
     flask_app.run(port=PORT, use_reloader=False)
 
-
-
-
-
 class YouTubeDownloader(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.cleanup.start()
         self.external_ip = "smol-ash.happyllama25.net"
+        self.last_update_time = 0
         
         # Start Flask app in a separate thread
         flask_thread = Thread(target=run_flask_app)
@@ -53,33 +50,26 @@ class YouTubeDownloader(commands.Cog):
         quality: str = commands.Param(choices=["highest", "regular", "lowest available"], default="regular")
     ):
         await ctx.response.defer()
-        await ctx.edit_original_response(f"Starting download...")
         try:
-            throbber = ['⡿','⣟','⣯','⣷','⣾','⣽','⣻','⢿']
-            throbber_task = asyncio.create_task(self.loading_throbber(ctx, throbber))
-
             # Set initial format options based on user selection
             ydl_opts = {
                 'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title).30s.%(ext)s'),
                 'restrictfilenames': True,
                 'noplaylist': True,
+                'progress_hooks': [lambda d: self.progress_hook(d, ctx)]  # Add the progress hook
             }
 
             # Run yt-dlp in a separate thread
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as pool:
-                await loop.run_in_executor(pool, self.run_ytdlp, url, option, quality, ctx, DOWNLOAD_FOLDER)
+                await loop.run_in_executor(pool, self.run_yt_dlp, ydl_opts, url, option, quality, ctx, DOWNLOAD_FOLDER)
 
-            await throbber_task  # Ensure the throbber stops
             await ctx.edit_original_response(content="Download completed.")
     
         except Exception as e:
-            await throbber_task  # Ensure the throbber stops
             await ctx.send(f"An error occurred: {str(e)}")
 
-        
-
-    async def run_yt_dlp(self, ydl_opts, url, option, quality, ctx, file_path):
+    def run_yt_dlp(self, ydl_opts, url, option, quality, ctx, file_path):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(url, download=False)
             formats = info_dict.get('formats', [info_dict])
@@ -112,26 +102,32 @@ class YouTubeDownloader(commands.Cog):
                 ydl_opts['format'] = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
 
             info_dict = ydl.extract_info(url, download=True)
+            self.handle_upload(ctx, file_path, info_dict)
 
-            self.handle_upload(self, ctx, file_path, info_dict)
-            
             return info_dict
 
-    
-    async def loading_throbber(self, ctx, throbber):
-        i = 0
-        while True:
-            await ctx.edit_original_response(content=f"Downloading... {throbber[i % len(throbber)]}\ni tried so hard to give a live estimation but yt-download is a pain")
-            i += 1
-            await asyncio.sleep(1)
+    def progress_hook(self, d, ctx):
+        current_time = time.time()
+        if current_time - self.last_update_time < 1:
+            return  # Skip update if less than 1 second has passed
+        self.last_update_time = current_time
 
-    async def handle_upload(self, ctx, file_path, info_dict):
+        if d['status'] == 'downloading':
+            percent = d['_percent_str'].strip()
+            speed = d['_speed_str'].strip()
+            eta = d['eta'] if d['eta'] else "N/A"
+            asyncio.run_coroutine_threadsafe(
+                ctx.edit_original_response(content=f"Downloading... {percent} at {speed} ETA: {eta}s"), 
+                self.bot.loop
+            )
+
+    def handle_upload(self, ctx, file_path, info_dict):
         file_size = os.path.getsize(file_path)
         url = f"http://{self.external_ip}:{PORT}/downloads/{os.path.basename(file_path)}"
         if file_size < 25 * 1024 * 1024:
-            await ctx.send(content=f"Size: {file_size / 1024 / 1024}mb\n[Link expires in 24 hours]({url})", file=disnake.File(file_path))
+            self.bot.loop.create_task(ctx.send(content=f"Size: {file_size / 1024 / 1024:.2f}mb\n[Link expires in 24 hours]({url})", file=disnake.File(file_path)))
         else:
-            await ctx.send(f"Size: {file_size / 1024 / 1024}mb\n[Link expires in 24 hours]({url})")
+            self.bot.loop.create_task(ctx.send(f"Size: {file_size / 1024 / 1024:.2f}mb\n[Link expires in 24 hours]({url})"))
 
         self.bot.loop.create_task(self.schedule_file_deletion(file_path, 24))
 
