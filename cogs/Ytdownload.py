@@ -7,6 +7,7 @@ import asyncio
 from datetime import datetime
 from flask import Flask, send_from_directory, abort, render_template, url_for
 from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 
 # Configuration
 DOWNLOAD_FOLDER = os.path.join(os.getcwd(), "downloads")
@@ -27,6 +28,10 @@ def serve_file(file_ID):
 
 def run_flask_app():
     flask_app.run(port=PORT, use_reloader=False)
+
+
+
+
 
 class YouTubeDownloader(commands.Cog):
     def __init__(self, bot):
@@ -60,20 +65,21 @@ class YouTubeDownloader(commands.Cog):
                 'noplaylist': True,
             }
 
-            # Run yt-dlp in a separate thread to avoid blocking the main async loop
-            info_dict = await asyncio.to_thread(self.run_yt_dlp, ydl_opts, url, option, quality)
-            file_path = os.path.join(DOWNLOAD_FOLDER, info_dict.get('title', 'unknown').replace(' ', '_') + '.' + info_dict.get('ext', 'mp4'))
+            # Run yt-dlp in a separate thread
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor() as pool:
+                await loop.run_in_executor(pool, self.run_ytdlp, url, option, quality, ctx, DOWNLOAD_FOLDER)
 
-            await throbber_task
-
-            await self.handle_upload(ctx, file_path, info_dict)
+            await throbber_task  # Ensure the throbber stops
+            await ctx.edit_original_response(content="Download completed.")
+    
         except Exception as e:
             await throbber_task  # Ensure the throbber stops
-            await ctx.edit_original_response(f"An error occurred: {str(e)}\n\nTry again?")
-            print(e)
+            await ctx.send(f"An error occurred: {str(e)}")
+
         
 
-    def run_yt_dlp(self, ydl_opts, url, option, quality):
+    async def run_yt_dlp(self, ydl_opts, url, option, quality, ctx, file_path):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(url, download=False)
             formats = info_dict.get('formats', [info_dict])
@@ -106,13 +112,16 @@ class YouTubeDownloader(commands.Cog):
                 ydl_opts['format'] = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
 
             info_dict = ydl.extract_info(url, download=True)
+
+            self.handle_upload(self, ctx, file_path, info_dict)
+            
             return info_dict
 
     
     async def loading_throbber(self, ctx, throbber):
         i = 0
         while True:
-            await ctx.edit_original_response(content=f"Downloading... {throbber[i % len(throbber)]}")
+            await ctx.edit_original_response(content=f"Downloading... {throbber[i % len(throbber)]}\ni tried so hard to give a live estimation but yt-download is a pain")
             i += 1
             await asyncio.sleep(1)
 
