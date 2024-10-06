@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta property="og:title" content="Download Video">
+    <meta property="og:description" content="Click the button below to download your file.">
+    <meta property="og:video" content="{{ url_for('serve_file', file_ID=file_ID, _external=True) }}">
+    <meta property="og:video:secure_url" content="{{ url_for('serve_file', file_ID=file_ID, _external=True) }}">
+    <meta property="og:video:type" content="video/mp4">
+
     <title>CatBot GiftBox</title>
     <!-- dm me the word "carrots" -->
     <style>
@@ -29,7 +36,7 @@
             height: 100%;
             background: linear-gradient(135deg, #043f61, #4d025a);
             background-size: 180% 180%;
-            animation: gradient-animation 6s ease infinite;
+            animation: gradient-animation 12s ease infinite;
             z-index: -1;
         }
 
@@ -90,10 +97,16 @@
     <div class="gradient"></div>
     <div class="content">
         <div class="meow-box" onclick="meowClick()">meow</div>
-        <p>yer can click thee button below<br>to download <b>{{ file_ID }}</b></p>
-        <a href="/media/{{ file_ID }}" class="download-button">Download</a>
-        <h4 class="disclaimer">will expire 24 days after creation</h4>
+        <p>You can click the button below to download <b>{{ file_ID }}</b></p>
+        <a href="{{ url_for('serve_file', file_ID=file_ID) }}" class="download-button">Download</a>
+        <h4 class="disclaimer">This link will expire 1 hour from creation</h4>
+        <video width="320" height="240" controls>
+            <source src="{{ url_for('serve_file', file_ID=file_ID) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
     </div>
+
+    
 
     <audio id="meow1" src="{{ url_for('static', filename='media/meow1.mp3') }}"></audio>
     <audio id="meow2" src="{{ url_for('static', filename='media/meow2.mp3') }}"></audio>
@@ -102,6 +115,7 @@
     <audio id="purreow1" src="{{ url_for('static', filename='media/purreow1.mp3') }}"></audio>
     <audio id="purreow2" src="{{ url_for('static', filename='media/purreow2.mp3') }}"></audio>
 
+    <!-- heheheh -->
     <script>
         let clickCount = 0;
 

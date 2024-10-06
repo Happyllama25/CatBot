@@ -2,17 +2,15 @@ import disnake
 from disnake.ext import commands, tasks
 import yt_dlp
 import os
-import time
 import asyncio
 from datetime import datetime
 from flask import Flask, send_from_directory, abort, render_template
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
-from queue import SimpleQueue
 
 # Configuration
 DOWNLOAD_FOLDER = os.path.join(os.getcwd(), "downloads")
-PORT = 8129  # Make sure to use the same port in the URL generation
+PORT = 8129
 
 flask_app = Flask(__name__)
 
@@ -25,7 +23,7 @@ def serve_file(file_ID):
     try:
         return send_from_directory(DOWNLOAD_FOLDER, file_ID, as_attachment=True)
     except FileNotFoundError:
-        abort(404)
+        return render_template('404.html'), 404
 
 def run_flask_app():
     flask_app.run(port=PORT, use_reloader=False)
@@ -35,8 +33,6 @@ class YouTubeDownloader(commands.Cog):
         self.bot = bot
         self.cleanup.start()
         self.external_ip = "smol-ash.happyllama25.net"
-        self.last_update_time = 0
-        self.progress_queue = SimpleQueue()
         
         # Start Flask app in a separate thread
         flask_thread = Thread(target=run_flask_app)
@@ -48,75 +44,59 @@ class YouTubeDownloader(commands.Cog):
         self, 
         ctx, 
         url: str, 
-        option: str = commands.Param(choices=["video+audio", "audio"], default="video+audio"),
-        quality: str = commands.Param(choices=["highest", "regular", "lowest available"], default="regular")
+        type: str = commands.Param(choices=["video+audio", "audio"], default="video+audio")
     ):
         await ctx.response.defer()
-        self.last_update_time = time.time()
         try:
             # Set initial format options based on user selection
             ydl_opts = {
                 'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title).30s.%(ext)s'),
                 'restrictfilenames': True,
                 'noplaylist': True,
+                'cookiefile': 'cookies.txt'  # Add the cookies file
+                # 'extractor_args': {  # Add extractor arguments for YouTube
+                #     'youtube': {
+                #         'player-client': 'web,default',
+                #         'po_token': 'web+Mlt8mMXN8ORQjXygrUBQWSQujPF1zfTSOd5a5vHKckodKrPy0hfor25t9vRDOEN2_hXl3CZWe_Y5f0-ldFr_EIKm2IR0YKYr9hw8XjBJ9BrNOY7fdbgqrACksa56'
+                #     }
+                # }
             }
-
-
             # Run yt-dlp in a separate thread
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as pool:
-                await loop.run_in_executor(pool, self.run_yt_dlp, ydl_opts, url, option, quality, ctx)
-    
+                await loop.run_in_executor(pool, self.run_yt_dlp, ydl_opts, url, type, ctx)
+
         except Exception as e:
             await ctx.send(f"An error occurred: {str(e)}")
 
-    def run_yt_dlp(self, ydl_opts, url, option, quality, ctx):
+    def run_yt_dlp(self, ydl_opts, url, type, ctx):
+        if type == "audio":
+            format_string = "ba[ext=m4a]/ba"
+        else:
+            format_string = "b[height<=1080]/b"
+        # Add format string to yt-dlp options
+        ydl_opts['format'] = format_string
+
+        # Use yt-dlp to extract and download the content
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=False)
-            formats = info_dict.get('formats', [info_dict])
-
-            best_format = None
-
-            if quality == "lowest available":
-                best_format = min(
-                    (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
-                    key=lambda f: f.get('filesize', float('inf')),
-                    default=None
-                )
-            elif quality == "highest":
-                best_format = max(
-                    (f for f in formats if f.get('ext') == 'mp4' or option == "audio"),
-                    key=lambda f: f.get('filesize', float('-inf')),
-                    default=None
-                )
-            elif quality == "regular":
-                for f in formats:
-                    if f.get('filesize') and f.get('ext') == 'mp4' and f['height'] <= 1080:
-                        best_format = f['format_id']
-                        break
-                if not best_format:
-                    best_format = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
-
-            if best_format:
-                ydl_opts['format'] = best_format if isinstance(best_format, str) else best_format['format_id']
-            else:
-                ydl_opts['format'] = 'bestvideo[height<=1080]+bestaudio[ext=m4a]/best[height<=1080]' if option == "video+audio" else 'bestaudio[ext=m4a]/best'
-
             info_dict = ydl.extract_info(url, download=True)
-            downloaded_file_path = ydl.prepare_filename(info_dict)  # Get the actual file path
+            downloaded_file_path = ydl.prepare_filename(info_dict)
+
+            # Handle file upload or further processing
             self.handle_upload(ctx, downloaded_file_path, info_dict)
 
-            return info_dict
+        return info_dict
+
 
     def handle_upload(self, ctx, file_path, info_dict):
         file_size = os.path.getsize(file_path)
         url = f"http://{self.external_ip}:{PORT}/downloads/{os.path.basename(file_path)}"
         if file_size < 25 * 1024 * 1024:
-            self.bot.loop.create_task(ctx.send(content=f"Size: {file_size / 1024 / 1024:.2f}mb\n[Link expires in 24 hours]({url})", file=disnake.File(file_path)))
+            self.bot.loop.create_task(ctx.send(content=f"Size: {file_size / 1024 / 1024:.2f}mb\n[Link expires in 1 hour]({url})", file=disnake.File(file_path)))
         else:
-            self.bot.loop.create_task(ctx.send(f"Size: {file_size / 1024 / 1024:.2f}mb\n[Link expires in 24 hours]({url})"))
+            self.bot.loop.create_task(ctx.send(f"Size: {file_size / 1024 / 1024:.2f}mb\n[Link expires in 1 hour]({url})"))
 
-        self.bot.loop.create_task(self.schedule_file_deletion(file_path, 24))
+        self.bot.loop.create_task(self.schedule_file_deletion(file_path, 1))
 
     async def schedule_file_deletion(self, file_path, hours):
         await asyncio.sleep(hours * 3600)
