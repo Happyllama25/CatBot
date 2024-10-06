@@ -26,7 +26,7 @@ def serve_file(file_ID):
         return render_template('404.html'), 404
 
 def run_flask_app():
-    flask_app.run(port=PORT, use_reloader=False)
+    flask_app.run(port=PORT, use_reloader=False, host='0.0.0.0', use_evalex=False)
 
 class YouTubeDownloader(commands.Cog):
     def __init__(self, bot):
