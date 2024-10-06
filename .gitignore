@@ -8,4 +8,7 @@ feet/
 __pycache__/
 *.json
 output/
+tts_output/
 ffmpeg2pass-0.*
+cookies.txt
+downloads/*
