@@ -57,7 +57,7 @@ class YouTubeDownloader(commands.Cog):
                 # 'extractor_args': {  # Add extractor arguments for YouTube
                 #     'youtube': {
                 #         'player-client': 'web,default',
-                #         'po_token': 'web+Mlt8mMXN8ORQjXygrUBQWSQujPF1zfTSOd5a5vHKckodKrPy0hfor25t9vRDOEN2_hXl3CZWe_Y5f0-ldFr_EIKm2IR0YKYr9hw8XjBJ9BrNOY7fdbgqrACksa56'
+                #         'po_token': 'web+doireallyneedthis'
                 #     }
                 # }
             }
