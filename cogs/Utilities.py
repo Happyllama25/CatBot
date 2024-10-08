@@ -9,18 +9,15 @@ from io import BytesIO
 from disnake.ext import commands
 
 class Utilities(commands.Cog):
-
     def __init__(self, bot):
         self.bot = bot
-        if not os.path.exists("quotes.json"):
-            with open("quotes.json", "w") as file:
+        base_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+        notes_path = os.path.join(base_dir, "notes.json")
+
+        if not os.path.exists(notes_path):
+            with open(notes_path, "w") as file:
                 json.dump([], file)
-        if not os.path.exists("reminders.json"):
-            with open("reminders.json", "w") as file:
-                json.dump([], file)
-        if not os.path.exists("notes.json"):
-            with open("notes.json", "w") as file:
-                json.dump([], file)
+
 
 
     @commands.slash_command(name="suggest", description="Suggest a feature for this bot!")
