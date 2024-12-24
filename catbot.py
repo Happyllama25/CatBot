@@ -29,7 +29,24 @@ watchingStatus = [
 	"your mom",
     "HELP IM A HUMAN LLAMA IS HOLDING ME HOSTAGE",
     "the world burn",
-    "meow meow meow meow meow meow meow meow meow meow meow meow meow meow meow meow"
+    "meow meow meow meow meow meow meow meow meow meow meow meow meow meow meow meow",
+    "AITAH for eating my owner's homework?",
+    "how many times do i have to lick gavin to get a gavin point?",
+    "is tony popping off politically or is he just a furry? (the world may never know)", #ai made this btw
+    "DRAGON DRAGON DRAGON DRAGON",
+    "i think fabian wants to be a dragon",
+    "guys i want to be a shapeshifter",
+    "FUCK im so bored",
+    "how many more of these status messages do i have to make",
+    "tony fuck you",
+    "gavin fuck you",
+    "curtis fuck you",
+    "fabian fuck you",
+    "sibbi fuck you",
+    "ian i love you",
+    "🤡",
+    "no one will ever know", 
+    "uhh"
     ]
 
 
