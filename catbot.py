@@ -34,16 +34,11 @@ watchingStatus = [
     "how many times do i have to lick gavin to get a gavin point?",
     "is tony popping off politically or is he just a furry? (the world may never know)", #ai made this btw
     "DRAGON DRAGON DRAGON DRAGON",
-    "i think fabian wants to be a dragon",
+    "i think llama wants to be a dragon",
     "guys i want to be a shapeshifter",
     "FUCK im so bored",
     "how many more of these status messages do i have to make",
-    "tony fuck you",
     "gavin fuck you",
-    "curtis fuck you",
-    "fabian fuck you",
-    "sibbi fuck you",
-    "ian i love you",
     "🤡",
     "no one will ever know", 
     "uhh"
