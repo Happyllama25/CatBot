@@ -9,3 +9,4 @@ yt-dlp>=2024.9.27
 flask==3.0.3
 qrcode[pil]==7.4.2
 elevenlabs==1.6.0
+pyttsx3==2.98

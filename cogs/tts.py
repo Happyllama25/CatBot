@@ -4,7 +4,9 @@ from elevenlabs.client import AsyncElevenLabs
 import disnake
 import asyncio
 import os
-from asyncio import Lock, Queue
+import pyttsx3
+from asyncio import Lock, Queue, get_event_loop
+from functools import partial
 
 client = AsyncElevenLabs(api_key=os.getenv("ELEVEN_API_KEY"))
 
@@ -15,6 +17,8 @@ class TTSCog(commands.Cog):
         self.voice_locks = {}
         self.message_queues = {}
         self.thread_creators = {}
+        # track fallback to local TTS per guild
+        self.use_local = {}
 
     @commands.slash_command(name="speak", description="Start a TTS session in a voice channel")
     async def speak(self, ctx):
@@ -32,13 +36,16 @@ class TTSCog(commands.Cog):
             return
 
         voice_client = disnake.utils.get(self.bot.voice_clients, guild=ctx.guild)
-
         if voice_client is None:
             voice_client = await channel.connect()
 
-        voice_channel_name = channel.name
+        # reset fallback for this session
+        self.use_local[ctx.guild.id] = False
+
         initial_message = await ctx.channel.send(
-            content=f'{ctx.author.mention}\nVoice Channel: {voice_channel_name}\n\nUse `$stop` or disconnect from <#{channel.id}> to end the session.'
+            content=(f'{ctx.author.mention}\n'
+                     f'Voice Channel: {channel.name}\n\n'
+                     'Use `$stop` or disconnect to end the session.')
         )
 
         thread = await ctx.channel.create_thread(
@@ -54,96 +61,147 @@ class TTSCog(commands.Cog):
 
         await ctx.edit_original_response(content=f"TTS session started! Use the thread <#{thread.id}> to send messages.")
 
+        # spawn queue processor and monitor
+        self.bot.loop.create_task(self.process_queue(voice_client, thread, ctx.guild.id))
+        self.bot.loop.create_task(self.monitor_creator(ctx.guild, ctx.author, thread))
+
         try:
-            # Start the TTS processing loop
-            self.bot.loop.create_task(self.process_queue(voice_client, thread, ctx.guild.id))
-            self.bot.loop.create_task(self.monitor_creator(ctx.guild, ctx.author, thread))
-
             while True:
-                msg = await self.bot.wait_for('message', check=lambda m: m.channel.id == thread.id, timeout=None)
-
+                msg = await self.bot.wait_for(
+                    'message', check=lambda m: m.channel.id == thread.id, timeout=None
+                )
                 if msg.author == self.bot.user:
                     continue
-
                 if msg.content.lower() == "$stop":
                     await thread.send("Stopping TTS session and disconnecting.")
                     break
-
                 await self.message_queues[ctx.guild.id].put(msg.content)
-
         except Exception as e:
             await thread.send(f"An error occurred: {e}")
 
         await voice_client.disconnect()
         await thread.edit(archived=True, locked=True)
+        # cleanup
         del self.active_threads[thread_name]
         del self.voice_locks[ctx.guild.id]
         del self.message_queues[ctx.guild.id]
         del self.thread_creators[thread.id]
+        del self.use_local[ctx.guild.id]
 
     async def process_queue(self, voice_client, thread, guild_id):
+        # ensure output folder
         output_folder = 'tts_output'
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-        output_file_path = os.path.join(output_folder, f"tts_output.mp3")
+        os.makedirs(output_folder, exist_ok=True)
+
+        # define file names
+        api_file = os.path.join(output_folder, f"{guild_id}.mp3")
+        local_file = os.path.join(output_folder, f"{guild_id}.wav")
 
         while True:
-            try:
-                message = await self.message_queues[guild_id].get()
-                async with self.voice_locks[guild_id]:
-                    try:
-                        # Generate TTS audio
-                        audio_generator = await client.generate(
-                            text=message,
+            text = await self.message_queues[guild_id].get()
+            async with self.voice_locks[guild_id]:
+                # decide target file
+                target = api_file if not self.use_local.get(guild_id, False) else local_file
+                try:
+                    if not self.use_local.get(guild_id, False):
+                        # stream cloud TTS directly to mp3
+                        gen = await client.generate(
+                            text=text,
                             voice=Voice(voice_id="pNInz6obpgDQGcFmaJgB"),
                             model="eleven_multilingual_v2",
                             stream=True
                         )
+                        with open(api_file, 'wb') as f:
+                            async for chunk in gen:
+                                f.write(chunk)
+                    else:
+                        # run local wav TTS
+                        await self.run_local_tts(text, local_file)
 
-                        with open(output_file_path, 'wb') as file:
-                            async for audio_data in audio_generator:
-                                file.write(audio_data)
+                    # play file via ffmpeg
+                    source = disnake.FFmpegPCMAudio(target)
+                    voice_client.play(source, after=lambda e: print(f"Player error: {e}"))
+                    while voice_client.is_playing():
+                        await asyncio.sleep(0.5)
 
-                        source = disnake.FFmpegPCMAudio(output_file_path)
-                        voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
+                except Exception as e:
+                    # on first cloud failure, switch to local and retry once
+                    if not self.use_local.get(guild_id, False):
+                        self.use_local[guild_id] = True
+                        await thread.send("⚠️ ElevenLabs API failed — switching to local TTS.")
+                        try:
+                            await self.run_local_tts(text, local_file)
+                            source = disnake.FFmpegPCMAudio(local_file)
+                            voice_client.play(source)
+                            while voice_client.is_playing():
+                                await asyncio.sleep(0.5)
+                        except Exception as le:
+                            await thread.send(f"Local TTS also failed: {le}")
+                    else:
+                        await thread.send(f"TTS error: {e}")
 
-                        while voice_client.is_playing():
-                            await asyncio.sleep(1)
+                finally:
+                    # cleanup any generated files
+                    for f in (api_file, local_file):
+                        try:
+                            if os.path.exists(f):
+                                os.remove(f)
+                        except OSError:
+                            pass
 
-                    except Exception as e:
-                        await thread.send(f"Error processing message: {e}")
-                    finally:
-                        if os.path.exists(output_file_path):
-                            os.remove(output_file_path)
+    async def run_local_tts(self, text: str, outfile: str):
+        """
+        Synthesize `text` to `outfile` (WAV) using pyttsx3 in a thread-pool.
+        """
+        loop = get_event_loop()
+        await loop.run_in_executor(None, partial(self._pyttsx3_synth, text, outfile))
 
-            except asyncio.CancelledError:
-                break
+    def _pyttsx3_synth(self, text: str, outfile: str):
+        engine = pyttsx3.init()
+        # choose a natural English voice if available
+        voices = engine.getProperty('voices')
+        en = next((v for v in voices if 'english' in v.name.lower()), None)
+        if en:
+            engine.setProperty('voice', en.id)
+        # adjust speech properties
+        engine.setProperty('rate', 130)
+        engine.setProperty('volume', 1.0)
+        try:
+            engine.setProperty('pitch', 70)
+        except Exception:
+            pass
+        engine.save_to_file(text, outfile)
+        engine.runAndWait()
+        engine.stop()
 
     async def monitor_creator(self, guild, creator, thread):
         try:
             while True:
                 if not creator.voice or creator.voice.channel.guild.id != guild.id:
-                    await thread.send("Thread parent left the channel, im gonna go cry now\n(archiving and locking the thread)")
+                    await thread.send(
+                        "Thread parent left; archiving and disconnecting."
+                    )
                     await thread.edit(archived=True, locked=True)
-                    voice_client = disnake.utils.get(self.bot.voice_clients, guild=guild)
-                    if voice_client:
-                        await voice_client.disconnect()
+                    vc = disnake.utils.get(self.bot.voice_clients, guild=guild)
+                    if vc:
+                        await vc.disconnect()
                     break
                 await asyncio.sleep(5)
         except Exception as e:
-            await thread.send(f"An error occurred in monitoring\nim sowwy 🥺\n{e}")
+            await thread.send(f"Monitoring error: {e}")
 
     @speak.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.author.voice:
-            channel = ctx.author.voice.channel
-            voice_client = disnake.utils.get(self.bot.voice_clients, guild=ctx.guild)
-            if voice_client is None:
-                await channel.connect()
-            elif voice_client.channel != channel:
-                await voice_client.move_to(channel)
+            ch = ctx.author.voice.channel
+            vc = disnake.utils.get(self.bot.voice_clients, guild=ctx.guild)
+            if vc is None:
+                await ch.connect()
+            elif vc.channel != ch:
+                await vc.move_to(ch)
         else:
             ctx.voice_error = "You are not connected to a voice channel."
+
 
 def setup(bot):
     bot.add_cog(TTSCog(bot))
